@@ -10,8 +10,7 @@ from flask_pyoidc.provider_configuration import ProviderConfiguration, ClientMet
 from flask_pyoidc.user_session import UserSession
 
 abspath = os.path.abspath(os.path.dirname(__file__))
-backend = os.path.dirname(abspath)
-parent = os.path.dirname(backend)
+parent = os.path.dirname(abspath)
 util = parent + '/util'
 sys.path.append(parent)
 

@@ -3,8 +3,7 @@ import os, errno,stat,traceback, sys, re
 import configparser
 
 abspath = os.path.abspath(os.path.dirname(__file__))
-util = os.path.dirname(abspath)
-parent = os.path.dirname(util)
+parent = os.path.dirname(abspath)
 sys.path.append(parent)
 
 logger = logging.getLogger(__name__)
