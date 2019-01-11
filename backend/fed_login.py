@@ -3,7 +3,10 @@ import datetime
 import flask
 import logging
 from flask import Flask, jsonify
-import os, sys
+import sys, os
+from os import path, remove
+import logging.config
+import json
 
 from flask_pyoidc.flask_pyoidc import OIDCAuthentication
 from flask_pyoidc.provider_configuration import ProviderConfiguration, ClientMetadata, ProviderMetadata
@@ -13,6 +16,21 @@ abspath = os.path.abspath(os.path.dirname(__file__))
 parent = os.path.dirname(abspath)
 util = parent + '/util'
 sys.path.append(parent)
+
+# If applicable, delete the existing log file to generate a fresh log file during each execution
+logfile_path = abspath + "/cadre_logging.log"
+if path.isfile(logfile_path):
+    remove(logfile_path)
+
+log_conf = abspath + '/logging-conf.json'
+with open(log_conf, 'r') as logging_configuration_file:
+    config_dict = json.load(logging_configuration_file)
+
+logging.config.dictConfig(config_dict)
+
+# Log that the logger was configured
+logger = logging.getLogger(__name__)
+logger.info('Completed configuring logger()!')
 
 import util.config_reader
 
@@ -37,7 +55,7 @@ config = ProviderConfiguration(provider_metadata=provider_metadata,
 auth = OIDCAuthentication({'default': config}, app)
 
 
-@app.route('/')
+@app.route('/login')
 @auth.oidc_auth('default')
 def login():
     user_session = UserSession(flask.session)
@@ -46,19 +64,25 @@ def login():
                    userinfo=user_session.userinfo)
 
 
+@app.route('/')
+def home():
+    return 'Howdy world!'
+
+
 @app.route('/logout')
 @auth.oidc_logout
 def logout():
     return "You've been successfully logged out!"
 
-
-@auth.error_view
-def error(error=None, error_description=None):
-    return jsonify({'error': error, 'message': error_description})
+#
+# @auth.error_view
+# def error(error=None, error_description=None):
+#     return jsonify({'error': error, 'message': error_description})
 
 
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    app.logger.info('Initializing !')
+    # logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     auth.init_app(app)
-    app.run(host='localhost', port=5000, debug=True)
+    app.run()
 
