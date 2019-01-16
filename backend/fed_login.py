@@ -2,7 +2,7 @@ import datetime
 
 import flask
 import logging
-from flask import Flask, jsonify
+from flask import Flask, jsonify, render_template
 import sys, os
 from os import path, remove
 import logging.config
@@ -66,13 +66,22 @@ def login():
 
 @app.route('/')
 def home():
-    return 'Howdy world!'
+    # return 'Howdy world!'
+    return render_template('login.html')
 
+@app.route('/login-success')
+def login_success():
+    return render_template('login-success.html')
+
+@app.route('/login-fail')
+def login_fail():
+    return render_template('login-fail.html')
 
 @app.route('/logout')
 @auth.oidc_logout
 def logout():
-    return "You've been successfully logged out!"
+    # return "You've been successfully logged out!"
+    return render_template('logout.html')
 
 #
 # @auth.error_view
