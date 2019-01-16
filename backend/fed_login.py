@@ -67,6 +67,8 @@ def login():
 @app.route('/')
 def home():
     # return 'Howdy world!'
+
+    # using Jinja2 templates: http://flask.pocoo.org/docs/1.0/quickstart/#rendering-templates
     return render_template('login.html')
 
 @app.route('/login-success')
