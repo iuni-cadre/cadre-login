@@ -1,1 +1,5 @@
 venv
+conf/cadre.config
+
+/util/__pycache__/
+backend/cadre_logging.log
