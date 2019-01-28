@@ -10,6 +10,7 @@ Flask==0.12.2
 Flask-HTTPAuth==3.2.3
 Flask-pyoidc==2.0.0
 Flask-SQLAlchemy==2.3.2
+Flask-Login==0.3.1
 future==0.17.1
 idna==2.7
 itsdangerous==1.1.0
@@ -26,3 +27,5 @@ six==1.11.0
 SQLAlchemy==1.2.14
 urllib3==1.24.1
 Werkzeug==0.14.1
+psycopg2-binary==2.7.4
+pydevd

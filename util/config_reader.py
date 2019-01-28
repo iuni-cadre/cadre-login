@@ -1,5 +1,5 @@
 import logging
-import os, errno,stat,traceback, sys, re
+import os, traceback, sys
 import configparser
 
 abspath = os.path.abspath(os.path.dirname(__file__))
@@ -29,6 +29,17 @@ def get_server_name():
         config = get_cadre_config()
         server_name = config['DEFAULT']['server-name']
         return server_name
+    except Exception as e:
+        traceback.print_tb(e.__traceback__)
+        logger.error('Unable to find cadre.config file. Make sure you have cadre.config inside conf directory !')
+        raise Exception('Unable to find cadre.config file !')
+
+
+def get_redirect_uri():
+    try:
+        config = get_cadre_config()
+        redirect_uri = config['DEFAULT']['redirect-uri']
+        return redirect_uri
     except Exception as e:
         traceback.print_tb(e.__traceback__)
         logger.error('Unable to find cadre.config file. Make sure you have cadre.config inside conf directory !')
@@ -95,6 +106,127 @@ def get_cilogon_jwks_uri():
         config = get_cadre_config()
         jwks_uri = config['CILOGON']['jwks-uri']
         return jwks_uri
+    except Exception as e:
+        traceback.print_tb(e.__traceback__)
+        logger.error('Unable to find cadre.config file. Make sure you have cadre.config inside conf directory !')
+        raise Exception('Unable to find cadre.config file !')
+
+
+def get_cilogon_token_endpoint():
+    try:
+        config = get_cadre_config()
+        token_ep = config['CILOGON']['token-endpoint']
+        return token_ep
+    except Exception as e:
+        traceback.print_tb(e.__traceback__)
+        logger.error('Unable to find cadre.config file. Make sure you have cadre.config inside conf directory !')
+        raise Exception('Unable to find cadre.config file !')
+    
+
+def get_cilogon_userinfo_endpoint():
+    try:
+        config = get_cadre_config()
+        userinfo_ep = config['CILOGON']['userinfo-endpoint']
+        return userinfo_ep
+    except Exception as e:
+        traceback.print_tb(e.__traceback__)
+        logger.error('Unable to find cadre.config file. Make sure you have cadre.config inside conf directory !')
+        raise Exception('Unable to find cadre.config file !')
+
+
+def get_cadre_db_hostname():
+    try:
+        config = get_cadre_config()
+        db_host_name = config['DATABASE_INFO']['database-host']
+        return db_host_name
+    except Exception as e:
+        traceback.print_tb(e.__traceback__)
+        logger.error('Unable to find cadre.config file. Make sure you have cadre.config inside conf directory !')
+        raise Exception('Unable to find cadre.config file !')
+
+
+def get_cadre_db_port():
+    try:
+        config = get_cadre_config()
+        db_port = config['DATABASE_INFO']['database-port']
+        return db_port
+    except Exception as e:
+        traceback.print_tb(e.__traceback__)
+        logger.error('Unable to find cadre.config file. Make sure you have cadre.config inside conf directory !')
+        raise Exception('Unable to find cadre.config file !')
+
+
+def get_cadre_db_name():
+    try:
+        config = get_cadre_config()
+        db_name = config['DATABASE_INFO']['database-name']
+        return db_name
+    except Exception as e:
+        traceback.print_tb(e.__traceback__)
+        logger.error('Unable to find cadre.config file. Make sure you have cadre.config inside conf directory !')
+        raise Exception('Unable to find cadre.config file !')
+
+
+def get_cadre_db_username():
+    try:
+        config = get_cadre_config()
+        db_username = config['DATABASE_INFO']['database-username']
+        return db_username
+    except Exception as e:
+        traceback.print_tb(e.__traceback__)
+        logger.error('Unable to find cadre.config file. Make sure you have cadre.config inside conf directory !')
+        raise Exception('Unable to find cadre.config file !')
+
+
+def get_cadre_db_pwd():
+    try:
+        config = get_cadre_config()
+        db_pwd = config['DATABASE_INFO']['database-password']
+        return db_pwd
+    except Exception as e:
+        traceback.print_tb(e.__traceback__)
+        logger.error('Unable to find cadre.config file. Make sure you have cadre.config inside conf directory !')
+        raise Exception('Unable to find cadre.config file !')
+
+
+def get_google_client_id():
+    try:
+        config = get_cadre_config()
+        client_id = config['GOOGLE']['client-id']
+        return client_id
+    except Exception as e:
+        traceback.print_tb(e.__traceback__)
+        logger.error('Unable to find cadre.config file. Make sure you have cadre.config inside conf directory !')
+        raise Exception('Unable to find cadre.config file !')
+
+
+def get_google_client_secret():
+    try:
+        config = get_cadre_config()
+        client_secret = config['GOOGLE']['client-secret']
+        return client_secret
+    except Exception as e:
+        traceback.print_tb(e.__traceback__)
+        logger.error('Unable to find cadre.config file. Make sure you have cadre.config inside conf directory !')
+        raise Exception('Unable to find cadre.config file !')
+
+
+def get_facebook_client_id():
+    try:
+        config = get_cadre_config()
+        client_id = config['FACEBOOK']['client-id']
+        return client_id
+    except Exception as e:
+        traceback.print_tb(e.__traceback__)
+        logger.error('Unable to find cadre.config file. Make sure you have cadre.config inside conf directory !')
+        raise Exception('Unable to find cadre.config file !')
+
+
+def get_facebook_client_secret():
+    try:
+        config = get_cadre_config()
+        client_secret = config['FACEBOOK']['client-secret']
+        return client_secret
     except Exception as e:
         traceback.print_tb(e.__traceback__)
         logger.error('Unable to find cadre.config file. Make sure you have cadre.config inside conf directory !')
