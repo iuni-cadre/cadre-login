@@ -122,7 +122,7 @@ def callback():
         user = User(social_id=email, name=full_name, email=email, institution=institution)
         db.session.add(user)
         db.session.commit()
-    login_user(user, True)
+    # login_user(user, True)
     return render_template('login-success.html', full_name = full_name, institution = institution)
 
 
@@ -157,9 +157,9 @@ if __name__ == '__main__':
     app.logger.info('Initializing !')
     auth.init_app(app)
     db.create_all()
-    login_manager = LoginManager()
-    login_manager.init_app(app)
-    login_manager.login_view = 'login'
+    # login_manager = LoginManager()
+    # login_manager.init_app(app)
+    # login_manager.login_view = 'login'
     # pydevd.settrace('127.0.0.1', port=8881, stdoutToServer=True, stderrToServer=True)
     app.run(host='127.0.0.1', port=5000, debug=True)
 
