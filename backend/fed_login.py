@@ -123,7 +123,7 @@ def callback():
         db.session.add(user)
         db.session.commit()
     login_user(user, True)
-    return render_template('login-success.html')
+    return render_template('login-success.html', full_name = full_name, institution = institution)
 
 
 @app.route('/login-fail')
