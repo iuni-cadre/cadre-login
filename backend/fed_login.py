@@ -1,8 +1,6 @@
 import datetime
 
 import flask
-import logging
-
 import requests
 from flask import Flask, jsonify, render_template, request
 import sys, os
@@ -14,7 +12,6 @@ from flask_pyoidc.flask_pyoidc import OIDCAuthentication
 from flask_pyoidc.provider_configuration import ProviderConfiguration, ClientMetadata, ProviderMetadata
 from flask_pyoidc.user_session import UserSession
 
-from flask_login import LoginManager, UserMixin, login_user, logout_user,current_user
 
 abspath = os.path.abspath(os.path.dirname(__file__))
 parent = os.path.dirname(abspath)
@@ -69,7 +66,7 @@ auth = OIDCAuthentication({'default': config}, app)
 @app.route('/login')
 @auth.oidc_auth('default')
 def login():
-    logger.debug('login')
+    logger.info('login')
     user_session = UserSession(flask.session)
     return jsonify(access_token=user_session.access_token,
                    id_token=user_session.id_token,
@@ -88,6 +85,7 @@ def login_success():
 
 @app.route('/api/auth/callback/')
 def callback():
+    logger.info("API CALLBACK")
     params = request.args.get('code')
 
     token_args = {
@@ -154,7 +152,7 @@ def error(error=None, error_description=None):
 
 
 if __name__ == '__main__':
-    app.logger.info('Initializing !')
+    logger.info('Initializing !')
     auth.init_app(app)
     db.create_all()
     # login_manager = LoginManager()
