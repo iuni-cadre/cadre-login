@@ -18,7 +18,8 @@ parent = os.path.dirname(abspath)
 util = parent + '/util'
 sys.path.append(parent)
 
-from backend.user_model import User, db, app
+import backend.data_model
+from backend.data_model import User, UserLogin, UserTeam, UserRole, db, app
 
 # sys.path.append("pycharm-debug-py3k.egg")
 
@@ -115,12 +116,11 @@ def callback():
     if email is None:
         logger.error('Authentication failed.')
         return render_template('login-failed.html')
-    user = User.query.filter_by(social_id=email).first()
-    if not user:
-        user = User(social_id=email, name=full_name, email=email, institution=institution)
-        db.session.add(user)
+    user_login = UserLogin.query.filter_by(social_id=email).first()
+    if not user_login:
+        user_login = User(social_id=email, name=full_name, email=email, institution=institution)
+        db.session.add(user_login)
         db.session.commit()
-    # login_user(user, True)
     return render_template('login-success.html', full_name = full_name, institution = institution)
 
 
@@ -154,7 +154,7 @@ def error(error=None, error_description=None):
 if __name__ == '__main__':
     logger.info('Initializing !')
     auth.init_app(app)
-    db.create_all()
+    backend.data_model.create_tables()
     # login_manager = LoginManager()
     # login_manager.init_app(app)
     # login_manager.login_view = 'login'
