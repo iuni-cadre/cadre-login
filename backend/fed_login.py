@@ -118,10 +118,10 @@ def callback():
         return render_template('login-failed.html')
     user_login = UserLogin.query.filter_by(social_id=email).first()
     if not user_login:
-        user_login = User(social_id=email, name=full_name, email=email, institution=institution)
+        user_login = UserLogin(social_id=email, name=full_name, email=email, institution=institution)
         db.session.add(user_login)
         db.session.commit()
-    return render_template('login-success.html', full_name = full_name, institution = institution)
+    return render_template('login-success.html', full_name=full_name, institution=institution)
 
 
 @app.route('/login-fail')
