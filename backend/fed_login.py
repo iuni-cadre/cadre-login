@@ -117,13 +117,15 @@ def callback():
         logger.error('Authentication failed.')
         return render_template('login-failed.html')
     user_login = UserLogin.query.filter_by(social_id=email).first()
-    login_count = user_login.login_count
-    login_count += 1
+    login_count = 0
     if not user_login:
+        login_count += 1
         user_login = UserLogin(social_id=email, name=full_name, email=email, institution=institution, login_count=login_count)
         db.session.add(user_login)
         db.session.commit()
     else:
+        login_count = user_login.login_count
+        login_count += 1
         user_login.login_count = login_count
         db.session.commit()
     return render_template('login-success.html', full_name=full_name, institution=institution, login_count=login_count)
