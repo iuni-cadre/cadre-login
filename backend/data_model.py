@@ -50,6 +50,7 @@ class UserLogin(db.Model):
     name = db.Column(db.String(128), nullable=False)
     email = db.Column(db.String(64), nullable=True)
     institution = db.Column(db.String(128), nullable=True)
+    login_count = db.Column(db.Integer, default=0)
 
 
 class User(db.Model):
