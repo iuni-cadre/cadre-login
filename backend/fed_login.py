@@ -58,7 +58,8 @@ GOOGLE_CLIENT = util.config_reader.get_google_client_id()
 GOOGLE_CLIENT_SECRET = util.config_reader.get_google_client_secret()
 
 google_auth_params = {
-    'scope': ['openid', 'email']
+    'scope': ['openid', 'email'],
+    'redirect_uri': 'https://login.cadre.iu.edu/api/auth/google/callback'
 }
 
 cilogon_provider_metadata = ProviderMetadata(issuer=util.config_reader.get_cilogon_issuer(),
@@ -75,7 +76,7 @@ cilogon_provider_config = ProviderConfiguration(provider_metadata=cilogon_provid
 google_provider_metadata = ProviderMetadata(issuer=util.config_reader.get_google_issuer(),
                                             authorization_endpoint=util.config_reader.get_google_auth_endpoint(),
                                             token_endpoint=util.config_reader.get_google_token_endpoint(),
-                                            redirect_uris=util.config_reader.get_redirect_uri())
+                                            redirect_uris='https://login.cadre.iu.edu/api/auth/google/callback')
 
 google_provider_config = ProviderConfiguration(provider_metadata=google_provider_metadata,
                                                client_metadata=ClientMetadata(GOOGLE_CLIENT, GOOGLE_CLIENT_SECRET),
