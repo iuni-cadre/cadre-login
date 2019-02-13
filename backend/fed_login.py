@@ -183,7 +183,7 @@ def google_callback():
         "client_id": util.config_reader.get_google_client_id(),
         "client_secret": util.config_reader.get_google_client_secret()
     }
-    response = requests.post(util.config_reader.get_cilogon_token_endpoint(), data=token_args)
+    response = requests.post(util.config_reader.get_google_token_endpoint(), data=token_args)
     access_token_json = response.json()
     access_token = access_token_json['access_token']
     id_token = access_token_json['id_token']
