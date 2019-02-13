@@ -51,7 +51,7 @@ CILOGON_CLIENT_SECRET = util.config_reader.get_cilogon_client_secret()
 
 cilogon_auth_params = {
     'scope': ['openid', 'profile', 'email', 'org.cilogon.userinfo'],
-    'redirect_uri': util.config_reader.get_redirect_uri()
+    'redirect_uri': util.config_reader.get_cilogon_redirect_uri()
 }
 
 GOOGLE_CLIENT = util.config_reader.get_google_client_id()
