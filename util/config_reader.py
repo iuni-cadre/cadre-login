@@ -35,15 +35,7 @@ def get_server_name():
         raise Exception('Unable to find cadre.config file !')
 
 
-def get_redirect_uri():
-    try:
-        config = get_cadre_config()
-        redirect_uri = config['DEFAULT']['redirect-uri']
-        return redirect_uri
-    except Exception as e:
-        traceback.print_tb(e.__traceback__)
-        logger.error('Unable to find cadre.config file. Make sure you have cadre.config inside conf directory !')
-        raise Exception('Unable to find cadre.config file !')
+
 
 
 def get_app_secret():
@@ -128,6 +120,17 @@ def get_cilogon_userinfo_endpoint():
         config = get_cadre_config()
         userinfo_ep = config['CILOGON']['userinfo-endpoint']
         return userinfo_ep
+    except Exception as e:
+        traceback.print_tb(e.__traceback__)
+        logger.error('Unable to find cadre.config file. Make sure you have cadre.config inside conf directory !')
+        raise Exception('Unable to find cadre.config file !')
+
+
+def get_cilogon_redirect_uri():
+    try:
+        config = get_cadre_config()
+        redirect_uri = config['CILOGON']['redirect-uri']
+        return redirect_uri
     except Exception as e:
         traceback.print_tb(e.__traceback__)
         logger.error('Unable to find cadre.config file. Make sure you have cadre.config inside conf directory !')
@@ -238,6 +241,17 @@ def get_google_issuer():
         config = get_cadre_config()
         issuer = config['GOOGLE']['issuer']
         return issuer
+    except Exception as e:
+        traceback.print_tb(e.__traceback__)
+        logger.error('Unable to find cadre.config file. Make sure you have cadre.config inside conf directory !')
+        raise Exception('Unable to find cadre.config file !')
+
+
+def get_google_redirect_uri():
+    try:
+        config = get_cadre_config()
+        redirect_uri = config['GOOGLE']['redirect-uri']
+        return redirect_uri
     except Exception as e:
         traceback.print_tb(e.__traceback__)
         logger.error('Unable to find cadre.config file. Make sure you have cadre.config inside conf directory !')

@@ -58,8 +58,8 @@ GOOGLE_CLIENT = util.config_reader.get_google_client_id()
 GOOGLE_CLIENT_SECRET = util.config_reader.get_google_client_secret()
 
 google_auth_params = {
-    'scope': ['openid', 'email'],
-    'redirect_uri': 'https://login.cadre.iu.edu/api/auth/google/callback'
+    'scope': ['openid', 'email', 'profile'],
+    'redirect_uri': util.config_reader.get_google_redirect_uri()
 }
 
 cilogon_provider_metadata = ProviderMetadata(issuer=util.config_reader.get_cilogon_issuer(),
@@ -67,7 +67,7 @@ cilogon_provider_metadata = ProviderMetadata(issuer=util.config_reader.get_cilog
                                              jwks_uri=util.config_reader.get_cilogon_jwks_uri(),
                                              token_endpoint=util.config_reader.get_cilogon_token_endpoint(),
                                              userinfo_endpoint=util.config_reader.get_cilogon_userinfo_endpoint(),
-                                             redirect_uris=util.config_reader.get_redirect_uri())
+                                             redirect_uris=util.config_reader.get_cilogon_redirect_uri())
 
 cilogon_provider_config = ProviderConfiguration(provider_metadata=cilogon_provider_metadata,
                                                 client_metadata=ClientMetadata(CILOGON_CLIENT, CILOGON_CLIENT_SECRET),
@@ -76,7 +76,7 @@ cilogon_provider_config = ProviderConfiguration(provider_metadata=cilogon_provid
 google_provider_metadata = ProviderMetadata(issuer=util.config_reader.get_google_issuer(),
                                             authorization_endpoint=util.config_reader.get_google_auth_endpoint(),
                                             token_endpoint=util.config_reader.get_google_token_endpoint(),
-                                            redirect_uris='https://login.cadre.iu.edu/api/auth/google/callback')
+                                            redirect_uris=util.config_reader.get_google_redirect_uri())
 
 google_provider_config = ProviderConfiguration(provider_metadata=google_provider_metadata,
                                                client_metadata=ClientMetadata(GOOGLE_CLIENT, GOOGLE_CLIENT_SECRET),
@@ -84,6 +84,23 @@ google_provider_config = ProviderConfiguration(provider_metadata=google_provider
 
 auth = OIDCAuthentication({'cilogon': cilogon_provider_config,
                            'google': google_provider_config}, app)
+
+
+def add_user(email, full_name, institution):
+    user_login = UserLogin.query.filter_by(social_id=email).first()
+    login_count = 0
+    if not user_login:
+        login_count += 1
+        user_login = UserLogin(social_id=email, name=full_name, email=email, institution=institution,
+                               login_count=login_count)
+        db.session.add(user_login)
+        db.session.commit()
+    else:
+        login_count = user_login.login_count
+        login_count += 1
+        user_login.login_count = login_count
+        db.session.commit()
+    return login_count
 
 
 @app.route('/login')
@@ -114,7 +131,7 @@ def cilogon_callback():
     token_args = {
         "code": params,
         "grant_type": "authorization_code",
-        "redirect_uri": util.config_reader.get_redirect_uri(),
+        "redirect_uri": util.config_reader.get_cilogon_redirect_uri(),
         "client_id": util.config_reader.get_cilogon_client_id(),
         "client_secret": util.config_reader.get_cilogon_client_secret()
     }
@@ -138,18 +155,7 @@ def cilogon_callback():
     if email is None:
         logger.error('Authentication failed.')
         return render_template('login-failed.html')
-    user_login = UserLogin.query.filter_by(social_id=email).first()
-    login_count = 0
-    if not user_login:
-        login_count += 1
-        user_login = UserLogin(social_id=email, name=full_name, email=email, institution=institution, login_count=login_count)
-        db.session.add(user_login)
-        db.session.commit()
-    else:
-        login_count = user_login.login_count
-        login_count += 1
-        user_login.login_count = login_count
-        db.session.commit()
+    login_count = add_user(email,full_name, institution)
     return render_template('login-success.html', full_name=full_name, institution=institution, login_count=login_count)
 
 
@@ -166,7 +172,32 @@ def google_login():
 @app.route('/api/auth/google/callback')
 def google_callback():
     logger.info("API CALLBACK")
-    return 'google logged'
+    scope = request.args.get('scope')
+    state = request.args.get('state')
+    code = request.args.get('code')
+
+    token_args = {
+        "code": code,
+        "grant_type": "authorization_code",
+        "redirect_uri": util.config_reader.get_google_redirect_uri(),
+        "client_id": util.config_reader.get_google_client_id(),
+        "client_secret": util.config_reader.get_google_client_secret()
+    }
+    response = requests.post(util.config_reader.get_cilogon_token_endpoint(), data=token_args)
+    access_token_json = response.json()
+    access_token = access_token_json['access_token']
+    id_token = access_token_json['id_token']
+    email = id_token['email']
+    logger.info(email)
+    name = id_token['name']
+    logger.info(name)
+    if email is None:
+        logger.error('Authentication failed.')
+        return render_template('login-failed.html')
+    if name is None:
+        name = email
+    login_count = add_user(email, name, 'google')
+    return render_template('login-success.html', full_name=name, institution='google', login_count=login_count)
 
 
 @app.route('/login-fail')
