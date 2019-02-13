@@ -46,11 +46,11 @@ def get_redirect_uri():
         raise Exception('Unable to find cadre.config file !')
 
 
-def get_cilogon_secret_key():
+def get_app_secret():
     try:
         config = get_cadre_config()
-        secret_key = config['CILOGON']['secret-key']
-        return secret_key
+        app_secret = config['DEFAULT']['app-secret']
+        return app_secret
     except Exception as e:
         traceback.print_tb(e.__traceback__)
         logger.error('Unable to find cadre.config file. Make sure you have cadre.config inside conf directory !')
@@ -210,6 +210,38 @@ def get_google_client_secret():
         logger.error('Unable to find cadre.config file. Make sure you have cadre.config inside conf directory !')
         raise Exception('Unable to find cadre.config file !')
 
+
+def get_google_auth_endpoint():
+    try:
+        config = get_cadre_config()
+        auth_ep = config['GOOGLE']['auth-endpoint']
+        return auth_ep
+    except Exception as e:
+        traceback.print_tb(e.__traceback__)
+        logger.error('Unable to find cadre.config file. Make sure you have cadre.config inside conf directory !')
+        raise Exception('Unable to find cadre.config file !')
+
+
+def get_google_token_endpoint():
+    try:
+        config = get_cadre_config()
+        token_ep = config['GOOGLE']['token-endpoint']
+        return token_ep
+    except Exception as e:
+        traceback.print_tb(e.__traceback__)
+        logger.error('Unable to find cadre.config file. Make sure you have cadre.config inside conf directory !')
+        raise Exception('Unable to find cadre.config file !')
+
+
+def get_google_issuer():
+    try:
+        config = get_cadre_config()
+        issuer = config['GOOGLE']['issuer']
+        return issuer
+    except Exception as e:
+        traceback.print_tb(e.__traceback__)
+        logger.error('Unable to find cadre.config file. Make sure you have cadre.config inside conf directory !')
+        raise Exception('Unable to find cadre.config file !')
 
 def get_facebook_client_id():
     try:

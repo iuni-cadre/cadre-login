@@ -41,33 +41,54 @@ logger.info('Completed configuring logger()!')
 import util.config_reader
 
 app.config.update({'SERVER_NAME': util.config_reader.get_server_name(),
-                   'SECRET_KEY': util.config_reader.get_cilogon_secret_key(),  # make sure to change this!!
+                   'SECRET_KEY': util.config_reader.get_app_secret(),
                    'PERMANENT_SESSION_LIFETIME': datetime.timedelta(days=7).total_seconds(),
                    'PREFERRED_URL_SCHEME': 'https',
                    'DEBUG': True})
 
-CLIENT = util.config_reader.get_cilogon_client_id()
-CLIENT_SECRET = util.config_reader.get_cilogon_client_secret()
+CILOGON_CLIENT = util.config_reader.get_cilogon_client_id()
+CILOGON_CLIENT_SECRET = util.config_reader.get_cilogon_client_secret()
 
-provider_metadata = ProviderMetadata(issuer=util.config_reader.get_cilogon_issuer(),
-                                     authorization_endpoint=util.config_reader.get_cilogon_authorization_ep(),
-                                     jwks_uri=util.config_reader.get_cilogon_jwks_uri(),
-                                     token_endpoint=util.config_reader.get_cilogon_token_endpoint(),
-                                     userinfo_endpoint=util.config_reader.get_cilogon_userinfo_endpoint(),
-                                     redirect_uris=util.config_reader.get_redirect_uri())
-auth_params = {'scope': ['openid', 'profile', 'email', 'org.cilogon.userinfo'],
-               'redirect_uri': util.config_reader.get_redirect_uri()}
-config = ProviderConfiguration(provider_metadata=provider_metadata,
-                               client_metadata=ClientMetadata(CLIENT, CLIENT_SECRET),
-                               auth_request_params=auth_params)
+cilogon_auth_params = {
+    'scope': ['openid', 'profile', 'email', 'org.cilogon.userinfo'],
+    'redirect_uri': util.config_reader.get_redirect_uri()
+}
 
-auth = OIDCAuthentication({'default': config}, app)
+GOOGLE_CLIENT = util.config_reader.get_google_client_id()
+GOOGLE_CLIENT_SECRET = util.config_reader.get_google_client_secret()
+
+google_auth_params = {
+    'scope': ['openid', 'email']
+}
+
+cilogon_provider_metadata = ProviderMetadata(issuer=util.config_reader.get_cilogon_issuer(),
+                                             authorization_endpoint=util.config_reader.get_cilogon_authorization_ep(),
+                                             jwks_uri=util.config_reader.get_cilogon_jwks_uri(),
+                                             token_endpoint=util.config_reader.get_cilogon_token_endpoint(),
+                                             userinfo_endpoint=util.config_reader.get_cilogon_userinfo_endpoint(),
+                                             redirect_uris=util.config_reader.get_redirect_uri())
+
+cilogon_provider_config = ProviderConfiguration(provider_metadata=cilogon_provider_metadata,
+                                                client_metadata=ClientMetadata(CILOGON_CLIENT, CILOGON_CLIENT_SECRET),
+                                                auth_request_params=cilogon_auth_params)
+
+google_provider_metadata = ProviderMetadata(issuer=util.config_reader.get_google_issuer(),
+                                            authorization_endpoint=util.config_reader.get_google_auth_endpoint(),
+                                            token_endpoint=util.config_reader.get_google_token_endpoint(),
+                                            redirect_uris=util.config_reader.get_redirect_uri())
+
+google_provider_config = ProviderConfiguration(provider_metadata=google_provider_metadata,
+                                               client_metadata=ClientMetadata(GOOGLE_CLIENT, GOOGLE_CLIENT_SECRET),
+                                               auth_request_params=google_auth_params)
+
+auth = OIDCAuthentication({'cilogon': cilogon_provider_config,
+                           'google': google_provider_config}, app)
 
 
 @app.route('/login')
-@auth.oidc_auth('default')
-def login():
-    logger.info('login')
+@auth.oidc_auth('cilogon')
+def cilogon_login():
+    logger.info('Cilogon login')
     user_session = UserSession(flask.session)
     return jsonify(access_token=user_session.access_token,
                    id_token=user_session.id_token,
@@ -85,7 +106,7 @@ def login_success():
 
 
 @app.route('/api/auth/callback/')
-def callback():
+def cilogon_callback():
     logger.info("API CALLBACK")
     params = request.args.get('code')
 
@@ -129,6 +150,22 @@ def callback():
         user_login.login_count = login_count
         db.session.commit()
     return render_template('login-success.html', full_name=full_name, institution=institution, login_count=login_count)
+
+
+@app.route('/api/auth/google/login')
+@auth.oidc_auth('google')
+def google_login():
+    logger.info('Google login')
+    user_session = UserSession(flask.session)
+    return jsonify(access_token=user_session.access_token,
+                   id_token=user_session.id_token,
+                   userinfo=user_session.userinfo)
+
+
+@app.route('/api/auth/google/callback')
+def google_callback():
+    logger.info("API CALLBACK")
+    return 'google logged'
 
 
 @app.route('/login-fail')
