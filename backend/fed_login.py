@@ -87,7 +87,7 @@ FACEBOOK_CLIENT = util.config_reader.get_facebook_client_id()
 FACEBOOK_CLIENT_SECRET = util.config_reader.get_facebook_client_secret()
 
 facebook_auth_params = {
-    'scope': ['openid', 'email', 'profile'],
+    'scope': ['email', 'profile'],
     'redirect_uri': util.config_reader.get_facebook_redirect_uri()
 }
 
@@ -257,12 +257,11 @@ def facebook_callback():
     access_token_json = response.json()
     logger.info(access_token_json)
     access_token = access_token_json['access_token']
-    id_token = access_token_json['id_token']
     user_info_args = {
         "access_token": access_token
     }
 
-    user_info_response = requests.post(util.config_reader.get_google_userinfo_endpoint(), data=user_info_args)
+    user_info_response = requests.post(util.config_reader.get_facebook_userinfo_endpoint(), data=user_info_args)
     user_info_response_json = user_info_response.json()
 
     logger.info(user_info_response_json)
