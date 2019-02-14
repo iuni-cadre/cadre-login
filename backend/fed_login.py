@@ -87,7 +87,7 @@ FACEBOOK_CLIENT = util.config_reader.get_facebook_client_id()
 FACEBOOK_CLIENT_SECRET = util.config_reader.get_facebook_client_secret()
 
 facebook_auth_params = {
-    'scope': ['email', 'profile'],
+    'scope': ['email'],
     'redirect_uri': util.config_reader.get_facebook_redirect_uri()
 }
 
