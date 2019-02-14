@@ -257,6 +257,17 @@ def get_google_redirect_uri():
         logger.error('Unable to find cadre.config file. Make sure you have cadre.config inside conf directory !')
         raise Exception('Unable to find cadre.config file !')
 
+
+def get_google_userinfo_endpoint():
+    try:
+        config = get_cadre_config()
+        userinfo_ep = config['GOOGLE']['userinfo-endpoint']
+        return userinfo_ep
+    except Exception as e:
+        traceback.print_tb(e.__traceback__)
+        logger.error('Unable to find cadre.config file. Make sure you have cadre.config inside conf directory !')
+        raise Exception('Unable to find cadre.config file !')
+
 def get_facebook_client_id():
     try:
         config = get_cadre_config()

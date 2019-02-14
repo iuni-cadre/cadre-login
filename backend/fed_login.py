@@ -187,7 +187,15 @@ def google_callback():
     access_token_json = response.json()
     access_token = access_token_json['access_token']
     id_token = access_token_json['id_token']
-    email = id_token['email']
+    user_info_args = {
+        "access_token": access_token
+    }
+
+    user_info_response = requests.post(util.config_reader.get_google_userinfo_endpoint(), data=user_info_args)
+    user_info_response_json = user_info_response.json()
+
+    logger.info(user_info_response_json)
+    email = user_info_response_json['email']
     logger.info(email)
     name = id_token['name']
     logger.info(name)
