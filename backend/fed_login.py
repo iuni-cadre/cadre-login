@@ -197,7 +197,7 @@ def google_callback():
     logger.info(user_info_response_json)
     email = user_info_response_json['email']
     logger.info(email)
-    name = id_token['name']
+    name = user_info_response_json['name']
     logger.info(name)
     if email is None:
         logger.error('Authentication failed.')
