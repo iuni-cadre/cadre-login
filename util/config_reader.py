@@ -268,6 +268,7 @@ def get_google_userinfo_endpoint():
         logger.error('Unable to find cadre.config file. Make sure you have cadre.config inside conf directory !')
         raise Exception('Unable to find cadre.config file !')
 
+
 def get_facebook_client_id():
     try:
         config = get_cadre_config()
@@ -284,6 +285,61 @@ def get_facebook_client_secret():
         config = get_cadre_config()
         client_secret = config['FACEBOOK']['client-secret']
         return client_secret
+    except Exception as e:
+        traceback.print_tb(e.__traceback__)
+        logger.error('Unable to find cadre.config file. Make sure you have cadre.config inside conf directory !')
+        raise Exception('Unable to find cadre.config file !')
+
+
+def get_facebook_auth_endpoint():
+    try:
+        config = get_cadre_config()
+        auth_ep = config['FACEBOOK']['auth-endpoint']
+        return auth_ep
+    except Exception as e:
+        traceback.print_tb(e.__traceback__)
+        logger.error('Unable to find cadre.config file. Make sure you have cadre.config inside conf directory !')
+        raise Exception('Unable to find cadre.config file !')
+
+
+def get_facebook_token_endpoint():
+    try:
+        config = get_cadre_config()
+        token_ep = config['FACEBOOK']['token-endpoint']
+        return token_ep
+    except Exception as e:
+        traceback.print_tb(e.__traceback__)
+        logger.error('Unable to find cadre.config file. Make sure you have cadre.config inside conf directory !')
+        raise Exception('Unable to find cadre.config file !')
+
+
+def get_facebook_issuer():
+    try:
+        config = get_cadre_config()
+        issuer = config['FACEBOOK']['issuer']
+        return issuer
+    except Exception as e:
+        traceback.print_tb(e.__traceback__)
+        logger.error('Unable to find cadre.config file. Make sure you have cadre.config inside conf directory !')
+        raise Exception('Unable to find cadre.config file !')
+
+
+def get_facebook_redirect_uri():
+    try:
+        config = get_cadre_config()
+        redirect_uri = config['FACEBOOK']['redirect-uri']
+        return redirect_uri
+    except Exception as e:
+        traceback.print_tb(e.__traceback__)
+        logger.error('Unable to find cadre.config file. Make sure you have cadre.config inside conf directory !')
+        raise Exception('Unable to find cadre.config file !')
+
+
+def get_facebook_userinfo_endpoint():
+    try:
+        config = get_cadre_config()
+        userinfo_ep = config['FACEBOOK']['userinfo-endpoint']
+        return userinfo_ep
     except Exception as e:
         traceback.print_tb(e.__traceback__)
         logger.error('Unable to find cadre.config file. Make sure you have cadre.config inside conf directory !')
