@@ -146,15 +146,16 @@ def add_user(email, full_name, institution):
             db.session.commit()
             login_id = user_login.id
         user_info = User.query.filter_by(login_id=login_id).first()
-        token = user_info.generate_auth_token(600)
         if not user_info:
             user_info = User(login_id=login_id, user_name=email, email=email)
             user_info.created_on = datetime.now()
             user_info.created_by = login_id
+            token = user_info.generate_auth_token(600)
             user_info.token = token
             db.session.add(user_info)
             db.session.commit()
         else:
+            token = user_info.generate_auth_token(600)
             user_info.token = token
             user_info.modified_on = datetime.now()
             db.session.commit()
