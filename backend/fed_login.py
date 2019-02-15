@@ -1,4 +1,5 @@
-import datetime
+from datetime import datetime
+import traceback
 
 import flask
 import requests
@@ -126,20 +127,40 @@ auth = OIDCAuthentication({
 
 
 def add_user(email, full_name, institution):
-    user_login = UserLogin.query.filter_by(social_id=email).first()
-    login_count = 0
-    if not user_login:
-        login_count += 1
-        user_login = UserLogin(social_id=email, name=full_name, email=email, institution=institution,
-                               login_count=login_count)
-        db.session.add(user_login)
-        db.session.commit()
-    else:
-        login_count = user_login.login_count
-        login_count += 1
-        user_login.login_count = login_count
-        db.session.commit()
-    return login_count
+    try:
+        user_login = UserLogin.query.filter_by(social_id=email).first()
+        login_count = 0
+        login_id = -1
+        if not user_login:
+            login_count += 1
+            user_login = UserLogin(social_id=email, name=full_name, email=email, institution=institution,
+                                   login_count=login_count)
+            db.session.add(user_login)
+            db.session.commit()
+            login_id = user_login.id
+        else:
+            login_count = user_login.login_count
+            login_count += 1
+            user_login.login_count = login_count
+            db.session.commit()
+            login_id = user_login.id
+        user_info = User.query.filter_by(login_id=login_id).first()
+        token = user_info.generate_auth_token(600)
+        if not user_info:
+            user_info = User(login_id=login_id, user_name=email, email=email)
+            user_info.created_on = datetime.now()
+            user_info.created_by = login_id
+            user_info.token = token
+            db.session.add(user_info)
+            db.session.commit()
+        else:
+            user_info.token = token
+            user_info.modified_on = datetime.now()
+            db.session.commit()
+        return token
+    except Exception as e:
+        logger.error('Error occurred while adding user to the database !')
+        traceback.print_tb(e.__traceback__)
 
 
 @app.route('/login')
@@ -164,38 +185,42 @@ def login_success():
 
 @app.route('/api/auth/callback/')
 def cilogon_callback():
-    logger.info("API CALLBACK")
-    params = request.args.get('code')
+    try:
+        logger.info("API CALLBACK")
+        params = request.args.get('code')
 
-    token_args = {
-        "code": params,
-        "grant_type": "authorization_code",
-        "redirect_uri": util.config_reader.get_cilogon_redirect_uri(),
-        "client_id": util.config_reader.get_cilogon_client_id(),
-        "client_secret": util.config_reader.get_cilogon_client_secret()
-    }
-    response = requests.post(util.config_reader.get_cilogon_token_endpoint(), data=token_args)
-    access_token_json = response.json()
-    access_token = access_token_json['access_token']
+        token_args = {
+            "code": params,
+            "grant_type": "authorization_code",
+            "redirect_uri": util.config_reader.get_cilogon_redirect_uri(),
+            "client_id": util.config_reader.get_cilogon_client_id(),
+            "client_secret": util.config_reader.get_cilogon_client_secret()
+        }
+        response = requests.post(util.config_reader.get_cilogon_token_endpoint(), data=token_args)
+        access_token_json = response.json()
+        access_token = access_token_json['access_token']
 
-    user_info_args = {
-        "access_token": access_token
-    }
+        user_info_args = {
+            "access_token": access_token
+        }
 
-    user_info_response = requests.post(util.config_reader.get_cilogon_userinfo_endpoint(), data=user_info_args)
-    user_info_response_json = user_info_response.json()
+        user_info_response = requests.post(util.config_reader.get_cilogon_userinfo_endpoint(), data=user_info_args)
+        user_info_response_json = user_info_response.json()
 
-    institution = user_info_response_json['idp_name']
-    email = user_info_response_json['email']
-    given_name = user_info_response_json['given_name']
-    family_name = user_info_response_json['family_name']
-    full_name = given_name + " " + family_name
+        institution = user_info_response_json['idp_name']
+        email = user_info_response_json['email']
+        given_name = user_info_response_json['given_name']
+        family_name = user_info_response_json['family_name']
+        full_name = given_name + " " + family_name
 
-    if email is None:
-        logger.error('Authentication failed.')
-        return render_template('login-failed.html')
-    login_count = add_user(email,full_name, institution)
-    return render_template('login-success.html', full_name=full_name, institution=institution, login_count=login_count)
+        if email is None:
+            logger.error('Authentication failed.')
+            return render_template('login-failed.html')
+        token = add_user(email,full_name, institution)
+        return render_template('login-success.html', full_name=full_name, institution=institution, token=token)
+    except Exception as e:
+        logger.error('Error occurred while login with CILogon !')
+        return jsonify({'error': str(e)}), 500
 
 
 @app.route('/api/auth/google/login')
@@ -210,41 +235,45 @@ def google_login():
 
 @app.route('/api/auth/google/callback')
 def google_callback():
-    logger.info("API CALLBACK")
-    scope = request.args.get('scope')
-    state = request.args.get('state')
-    code = request.args.get('code')
+    try:
+        logger.info("API CALLBACK")
+        scope = request.args.get('scope')
+        state = request.args.get('state')
+        code = request.args.get('code')
 
-    token_args = {
-        "code": code,
-        "grant_type": "authorization_code",
-        "redirect_uri": util.config_reader.get_google_redirect_uri(),
-        "client_id": util.config_reader.get_google_client_id(),
-        "client_secret": util.config_reader.get_google_client_secret()
-    }
-    response = requests.post(util.config_reader.get_google_token_endpoint(), data=token_args)
-    access_token_json = response.json()
-    access_token = access_token_json['access_token']
-    id_token = access_token_json['id_token']
-    user_info_args = {
-        "access_token": access_token
-    }
+        token_args = {
+            "code": code,
+            "grant_type": "authorization_code",
+            "redirect_uri": util.config_reader.get_google_redirect_uri(),
+            "client_id": util.config_reader.get_google_client_id(),
+            "client_secret": util.config_reader.get_google_client_secret()
+        }
+        response = requests.post(util.config_reader.get_google_token_endpoint(), data=token_args)
+        access_token_json = response.json()
+        access_token = access_token_json['access_token']
+        id_token = access_token_json['id_token']
+        user_info_args = {
+            "access_token": access_token
+        }
 
-    user_info_response = requests.post(util.config_reader.get_google_userinfo_endpoint(), data=user_info_args)
-    user_info_response_json = user_info_response.json()
+        user_info_response = requests.post(util.config_reader.get_google_userinfo_endpoint(), data=user_info_args)
+        user_info_response_json = user_info_response.json()
 
-    logger.info(user_info_response_json)
-    email = user_info_response_json['email']
-    logger.info(email)
-    name = user_info_response_json['name']
-    logger.info(name)
-    if email is None:
-        logger.error('Authentication failed.')
-        return render_template('login-failed.html')
-    if name is None:
-        name = email
-    login_count = add_user(email, name, 'google')
-    return render_template('login-success.html', full_name=name, institution='google', login_count=login_count)
+        logger.info(user_info_response_json)
+        email = user_info_response_json['email']
+        logger.info(email)
+        name = user_info_response_json['name']
+        logger.info(name)
+        if email is None:
+            logger.error('Authentication failed.')
+            return render_template('login-failed.html')
+        if name is None:
+            name = email
+        token = add_user(email, name, 'google')
+        return render_template('login-success.html', full_name=name, institution='google', token=token)
+    except Exception as e:
+        logger.error('Error occurred while login with CILogon !')
+        return jsonify({'error': str(e)}), 500
 
 
 @app.route('/api/auth/facebook/login')
@@ -259,42 +288,46 @@ def facebook_login():
 
 @app.route('/api/auth/facebook/callback')
 def facebook_callback():
-    logger.info("API CALLBACK")
-    scope = request.args.get('scope')
-    state = request.args.get('state')
-    code = request.args.get('code')
+    try:
+        logger.info("API CALLBACK")
+        scope = request.args.get('scope')
+        state = request.args.get('state')
+        code = request.args.get('code')
 
-    token_args = {
-        "code": code,
-        "grant_type": "authorization_code",
-        "redirect_uri": util.config_reader.get_facebook_redirect_uri(),
-        "client_id": util.config_reader.get_facebook_client_id(),
-        "client_secret": util.config_reader.get_facebook_client_secret()
-    }
-    response = requests.post(util.config_reader.get_facebook_token_endpoint(), data=token_args)
-    access_token_json = response.json()
-    logger.info(access_token_json)
-    access_token = access_token_json['access_token']
-    user_info_args = {
-        "access_token": access_token,
-        "fields": 'email, name'
-    }
+        token_args = {
+            "code": code,
+            "grant_type": "authorization_code",
+            "redirect_uri": util.config_reader.get_facebook_redirect_uri(),
+            "client_id": util.config_reader.get_facebook_client_id(),
+            "client_secret": util.config_reader.get_facebook_client_secret()
+        }
+        response = requests.post(util.config_reader.get_facebook_token_endpoint(), data=token_args)
+        access_token_json = response.json()
+        logger.info(access_token_json)
+        access_token = access_token_json['access_token']
+        user_info_args = {
+            "access_token": access_token,
+            "fields": 'email, name'
+        }
 
-    user_info_response = requests.post(util.config_reader.get_facebook_userinfo_endpoint(), data=user_info_args)
-    user_info_response_json = user_info_response.json()
+        user_info_response = requests.post(util.config_reader.get_facebook_userinfo_endpoint(), data=user_info_args)
+        user_info_response_json = user_info_response.json()
 
-    logger.info(user_info_response_json)
-    email = user_info_response_json['email']
-    logger.info(email)
-    name = user_info_response_json['name']
-    logger.info(name)
-    if email is None:
-        logger.error('Authentication failed.')
-        return render_template('login-failed.html')
-    if name is None:
-        name = email
-    login_count = add_user(email, name, 'google')
-    return render_template('login-success.html', full_name=name, institution='facebook', login_count=login_count)
+        logger.info(user_info_response_json)
+        email = user_info_response_json['email']
+        logger.info(email)
+        name = user_info_response_json['name']
+        logger.info(name)
+        if email is None:
+            logger.error('Authentication failed.')
+            return render_template('login-failed.html')
+        if name is None:
+            name = email
+        token = add_user(email, name, 'google')
+        return render_template('login-success.html', full_name=name, institution='facebook', token=token)
+    except Exception as e:
+        logger.error('Error occurred while login with CILogon !')
+        return jsonify({'error': str(e)}), 500
 
 
 @app.route('/api/auth/microsoft/login')
@@ -309,41 +342,45 @@ def microsoft_login():
 
 @app.route('/api/auth/microsoft/callback')
 def microsoft_callback():
-    logger.info("API CALLBACK")
-    scope = request.args.get('scope')
-    state = request.args.get('state')
-    code = request.args.get('code')
+    try:
+        logger.info("API CALLBACK")
+        scope = request.args.get('scope')
+        state = request.args.get('state')
+        code = request.args.get('code')
 
-    token_args = {
-        "code": code,
-        "grant_type": "authorization_code",
-        "redirect_uri": util.config_reader.get_microsoft_redirect_uri(),
-        "client_id": util.config_reader.get_microsoft_client_id(),
-        "client_secret": util.config_reader.get_microsoft_client_secret()
-    }
-    response = requests.post(util.config_reader.get_microsoft_token_endpoint(), data=token_args)
-    access_token_json = response.json()
-    logger.info(access_token_json)
-    access_token = access_token_json['access_token']
-    user_info_args = {
-        "access_token": access_token
-    }
+        token_args = {
+            "code": code,
+            "grant_type": "authorization_code",
+            "redirect_uri": util.config_reader.get_microsoft_redirect_uri(),
+            "client_id": util.config_reader.get_microsoft_client_id(),
+            "client_secret": util.config_reader.get_microsoft_client_secret()
+        }
+        response = requests.post(util.config_reader.get_microsoft_token_endpoint(), data=token_args)
+        access_token_json = response.json()
+        logger.info(access_token_json)
+        access_token = access_token_json['access_token']
+        user_info_args = {
+            "access_token": access_token
+        }
 
-    user_info_response = requests.post(util.config_reader.get_facebook_userinfo_endpoint(), data=user_info_args)
-    user_info_response_json = user_info_response.json()
+        user_info_response = requests.post(util.config_reader.get_facebook_userinfo_endpoint(), data=user_info_args)
+        user_info_response_json = user_info_response.json()
 
-    logger.info(user_info_response_json)
-    email = user_info_response_json['mail']
-    logger.info(email)
-    name = user_info_response_json['displayName']
-    logger.info(name)
-    if email is None:
-        logger.error('Authentication failed.')
-        return render_template('login-failed.html')
-    if name is None:
-        name = email
-    login_count = add_user(email, name, 'google')
-    return render_template('login-success.html', full_name=name, institution='microsoft', login_count=login_count)
+        logger.info(user_info_response_json)
+        email = user_info_response_json['mail']
+        logger.info(email)
+        name = user_info_response_json['displayName']
+        logger.info(name)
+        if email is None:
+            logger.error('Authentication failed.')
+            return render_template('login-failed.html')
+        if name is None:
+            name = email
+        token = add_user(email, name, 'google')
+        return render_template('login-success.html', full_name=name, institution='microsoft', token=token)
+    except Exception as e:
+        logger.error('Error occurred while login with CILogon !')
+        return jsonify({'error': str(e)}), 500
 
 
 @app.route('/login-fail')
@@ -377,9 +414,5 @@ if __name__ == '__main__':
     logger.info('Initializing !')
     auth.init_app(app)
     backend.data_model.create_tables()
-    # login_manager = LoginManager()
-    # login_manager.init_app(app)
-    # login_manager.login_view = 'login'
-    # pydevd.settrace('127.0.0.1', port=8881, stdoutToServer=True, stderrToServer=True)
     app.run(host='127.0.0.1', port=5000, debug=True)
 

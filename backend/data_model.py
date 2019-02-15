@@ -64,8 +64,6 @@ class User(db.Model):
     modified_on = db.Column(db.DateTime)
     created_by = db.Column(db.String(32))
     modified_by = db.Column(db.String(32), default=datetime.now())
-    passed_training = db.Column(db.Boolean)
-    # two tokens will be saved as a dict {1:token1, 2:token2} token2 is the most recent one
     token = db.Column(db.String(256))
 
     def hash_password(self, password):
