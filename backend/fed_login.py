@@ -147,15 +147,17 @@ def add_user(email, full_name, institution):
             login_id = user_login.id
         user_info = User.query.filter_by(login_id=login_id).first()
         if not user_info:
-            user_info = User(login_id=login_id, user_name=email, email=email)
+            user_info = User(login_id=login_id, username=email, email=email)
             user_info.created_on = datetime.now()
             user_info.created_by = login_id
             token = user_info.generate_auth_token(600)
+            logger.info(token)
             user_info.token = token
             db.session.add(user_info)
             db.session.commit()
         else:
             token = user_info.generate_auth_token(600)
+            logger.info(token)
             user_info.token = token
             user_info.modified_on = datetime.now()
             db.session.commit()
@@ -219,7 +221,8 @@ def cilogon_callback():
             logger.error('Authentication failed.')
             return render_template('login-failed.html')
         token = add_user(email,full_name, institution)
-        return render_template('login-success.html', full_name=full_name, institution=institution, token=token)
+        logger.info(token)
+        return render_template('login-success.html', full_name=full_name, institution=institution, token='token generated')
     except Exception as e:
         logger.error('Error occurred while login with CILogon !')
         return jsonify({'error': str(e)}), 500
@@ -272,7 +275,8 @@ def google_callback():
         if name is None:
             name = email
         token = add_user(email, name, 'google')
-        return render_template('login-success.html', full_name=name, institution='google', token=token)
+        logger.info(token)
+        return render_template('login-success.html', full_name=name, institution='google', token='token generated')
     except Exception as e:
         logger.error('Error occurred while login with CILogon !')
         return jsonify({'error': str(e)}), 500
@@ -326,7 +330,8 @@ def facebook_callback():
         if name is None:
             name = email
         token = add_user(email, name, 'google')
-        return render_template('login-success.html', full_name=name, institution='facebook', token=token)
+        logger.info(token)
+        return render_template('login-success.html', full_name=name, institution='facebook', token='token generated')
     except Exception as e:
         logger.error('Error occurred while login with CILogon !')
         return jsonify({'error': str(e)}), 500
@@ -379,7 +384,8 @@ def microsoft_callback():
         if name is None:
             name = email
         token = add_user(email, name, 'google')
-        return render_template('login-success.html', full_name=name, institution='microsoft', token=token)
+        logger.info(token)
+        return render_template('login-success.html', full_name=name, institution='microsoft', token='token generated')
     except Exception as e:
         logger.error('Error occurred while login with CILogon !')
         return jsonify({'error': str(e)}), 500
