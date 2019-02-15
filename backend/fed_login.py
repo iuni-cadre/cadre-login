@@ -221,7 +221,7 @@ def cilogon_callback():
     login_count = 0
     token = add_user(email,full_name, institution, login_count)
     logger.info(token)
-    return render_template('login-success.html', full_name=full_name, institution=institution, login_count=login_count)
+    return render_template('login-success.html', full_name=full_name, institution=institution, token=token)
 
 
 
@@ -273,7 +273,7 @@ def google_callback():
     login_count = 0
     token = add_user(email, name, 'google', login_count)
     logger.info(token)
-    return render_template('login-success.html', full_name=name, institution='google', login_count=login_count)
+    return render_template('login-success.html', full_name=name, institution='google', token=token)
 
 
 
@@ -326,7 +326,7 @@ def facebook_callback():
     login_count = 0
     token = add_user(email, name, 'google', login_count)
     logger.info(token)
-    return render_template('login-success.html', full_name=name, institution='facebook', login_count=login_count)
+    return render_template('login-success.html', full_name=name, institution='facebook', token=token)
 
 
 @app.route('/api/auth/microsoft/login')
@@ -377,7 +377,7 @@ def microsoft_callback():
     login_count = 0
     token = add_user(email, name, 'microsoft', login_count)
     logger.info(token)
-    return render_template('login-success.html', full_name=name, institution='microsoft', login_count=login_count)
+    return render_template('login-success.html', full_name=name, institution='microsoft', token=token)
 
 
 
