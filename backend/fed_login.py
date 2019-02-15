@@ -46,7 +46,7 @@ app.config.update({'SERVER_NAME': util.config_reader.get_server_name(),
                    'PREFERRED_URL_SCHEME': 'https',
                    'DEBUG': True})
 
-CILOGON_CLIENT = util.config_reader.get_cilogon_client_id()
+CILOGON_CLIENT_ID = util.config_reader.get_cilogon_client_id()
 CILOGON_CLIENT_SECRET = util.config_reader.get_cilogon_client_secret()
 
 cilogon_auth_params = {
@@ -63,10 +63,10 @@ cilogon_provider_metadata = ProviderMetadata(issuer=util.config_reader.get_cilog
                                              redirect_uris=util.config_reader.get_cilogon_redirect_uri())
 
 cilogon_provider_config = ProviderConfiguration(provider_metadata=cilogon_provider_metadata,
-                                                client_metadata=ClientMetadata(CILOGON_CLIENT, CILOGON_CLIENT_SECRET),
+                                                client_metadata=ClientMetadata(CILOGON_CLIENT_ID, CILOGON_CLIENT_SECRET),
                                                 auth_request_params=cilogon_auth_params)
 
-GOOGLE_CLIENT = util.config_reader.get_google_client_id()
+GOOGLE_CLIENT_ID = util.config_reader.get_google_client_id()
 GOOGLE_CLIENT_SECRET = util.config_reader.get_google_client_secret()
 
 google_auth_params = {
@@ -80,10 +80,10 @@ google_provider_metadata = ProviderMetadata(issuer=util.config_reader.get_google
                                             redirect_uris=util.config_reader.get_google_redirect_uri())
 
 google_provider_config = ProviderConfiguration(provider_metadata=google_provider_metadata,
-                                               client_metadata=ClientMetadata(GOOGLE_CLIENT, GOOGLE_CLIENT_SECRET),
+                                               client_metadata=ClientMetadata(GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET),
                                                auth_request_params=google_auth_params)
 
-FACEBOOK_CLIENT = util.config_reader.get_facebook_client_id()
+FACEBOOK_CLIENT_ID = util.config_reader.get_facebook_client_id()
 FACEBOOK_CLIENT_SECRET = util.config_reader.get_facebook_client_secret()
 
 facebook_auth_params = {
@@ -97,13 +97,31 @@ facebook_provider_metadata = ProviderMetadata(issuer=util.config_reader.get_face
                                             redirect_uris=util.config_reader.get_facebook_redirect_uri())
 
 facebook_provider_config = ProviderConfiguration(provider_metadata=facebook_provider_metadata,
-                                               client_metadata=ClientMetadata(FACEBOOK_CLIENT, FACEBOOK_CLIENT_SECRET),
-                                               auth_request_params=facebook_auth_params)
+                                                 client_metadata=ClientMetadata(FACEBOOK_CLIENT_ID, FACEBOOK_CLIENT_SECRET),
+                                                 auth_request_params=facebook_auth_params)
+
+MICROSOFT_CLIENT_ID = util.config_reader.get_facebook_client_id()
+MICROSOFT_CLIENT_SECRET = util.config_reader.get_facebook_client_secret()
+
+microsoft_auth_params = {
+    'scope': ['email', 'profile'],
+    'redirect_uri': util.config_reader.get_microsoft_redirect_uri()
+}
+
+microsoft_provider_metadata = ProviderMetadata(issuer=util.config_reader.get_microsoft_issuer(),
+                                            authorization_endpoint=util.config_reader.get_microsoft_auth_endpoint(),
+                                            redirect_uris=util.config_reader.get_microsoft_redirect_uri())
+
+microsoft_provider_config = ProviderConfiguration(provider_metadata=microsoft_provider_metadata,
+                                               client_metadata=ClientMetadata(MICROSOFT_CLIENT_ID, MICROSOFT_CLIENT_SECRET),
+                                               auth_request_params=microsoft_auth_params)
+
 
 auth = OIDCAuthentication({
     'cilogon': cilogon_provider_config,
     'google': google_provider_config,
-    'facebook': facebook_provider_config
+    'facebook': facebook_provider_config,
+    'microsoft': microsoft_provider_config
 }, app)
 
 
@@ -277,6 +295,55 @@ def facebook_callback():
         name = email
     login_count = add_user(email, name, 'google')
     return render_template('login-success.html', full_name=name, institution='facebook', login_count=login_count)
+
+
+@app.route('/api/auth/microsoft/login')
+@auth.oidc_auth('microsoft')
+def microsoft_login():
+    logger.info('Microsoft login')
+    user_session = UserSession(flask.session)
+    return jsonify(access_token=user_session.access_token,
+                   id_token=user_session.id_token,
+                   userinfo=user_session.userinfo)
+
+
+@app.route('/api/auth/microsoft/callback')
+def microsoft_callback():
+    logger.info("API CALLBACK")
+    scope = request.args.get('scope')
+    state = request.args.get('state')
+    code = request.args.get('code')
+
+    token_args = {
+        "code": code,
+        "grant_type": "authorization_code",
+        "redirect_uri": util.config_reader.get_microsoft_redirect_uri(),
+        "client_id": util.config_reader.get_microsoft_client_id(),
+        "client_secret": util.config_reader.get_microsoft_client_secret()
+    }
+    response = requests.post(util.config_reader.get_microsoft_token_endpoint(), data=token_args)
+    access_token_json = response.json()
+    logger.info(access_token_json)
+    access_token = access_token_json['access_token']
+    user_info_args = {
+        "access_token": access_token
+    }
+
+    user_info_response = requests.post(util.config_reader.get_facebook_userinfo_endpoint(), data=user_info_args)
+    user_info_response_json = user_info_response.json()
+
+    logger.info(user_info_response_json)
+    email = user_info_response_json['mail']
+    logger.info(email)
+    name = user_info_response_json['displayName']
+    logger.info(name)
+    if email is None:
+        logger.error('Authentication failed.')
+        return render_template('login-failed.html')
+    if name is None:
+        name = email
+    login_count = add_user(email, name, 'google')
+    return render_template('login-success.html', full_name=name, institution='microsoft', login_count=login_count)
 
 
 @app.route('/login-fail')

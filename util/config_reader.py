@@ -344,3 +344,80 @@ def get_facebook_userinfo_endpoint():
         traceback.print_tb(e.__traceback__)
         logger.error('Unable to find cadre.config file. Make sure you have cadre.config inside conf directory !')
         raise Exception('Unable to find cadre.config file !')
+
+
+def get_microsoft_client_id():
+    try:
+        config = get_cadre_config()
+        client_id = config['MICROSOFT']['client-id']
+        return client_id
+    except Exception as e:
+        traceback.print_tb(e.__traceback__)
+        logger.error('Unable to find cadre.config file. Make sure you have cadre.config inside conf directory !')
+        raise Exception('Unable to find cadre.config file !')
+
+
+def get_microsoft_client_secret():
+    try:
+        config = get_cadre_config()
+        client_secret = config['MICROSOFT']['client-secret']
+        return client_secret
+    except Exception as e:
+        traceback.print_tb(e.__traceback__)
+        logger.error('Unable to find cadre.config file. Make sure you have cadre.config inside conf directory !')
+        raise Exception('Unable to find cadre.config file !')
+
+
+def get_microsoft_auth_endpoint():
+    try:
+        config = get_cadre_config()
+        auth_ep = config['MICROSOFT']['auth-endpoint']
+        return auth_ep
+    except Exception as e:
+        traceback.print_tb(e.__traceback__)
+        logger.error('Unable to find cadre.config file. Make sure you have cadre.config inside conf directory !')
+        raise Exception('Unable to find cadre.config file !')
+
+
+def get_microsoft_issuer():
+    try:
+        config = get_cadre_config()
+        issuer = config['MICROSOFT']['issuer']
+        return issuer
+    except Exception as e:
+        traceback.print_tb(e.__traceback__)
+        logger.error('Unable to find cadre.config file. Make sure you have cadre.config inside conf directory !')
+        raise Exception('Unable to find cadre.config file !')
+
+
+def get_microsoft_redirect_uri():
+    try:
+        config = get_cadre_config()
+        redirect_uri = config['MICROSOFT']['redirect-uri']
+        return redirect_uri
+    except Exception as e:
+        traceback.print_tb(e.__traceback__)
+        logger.error('Unable to find cadre.config file. Make sure you have cadre.config inside conf directory !')
+        raise Exception('Unable to find cadre.config file !')
+
+
+def get_microsoft_token_endpoint():
+    try:
+        config = get_cadre_config()
+        token_ep = config['MICROSOFT']['token-endpoint']
+        return token_ep
+    except Exception as e:
+        traceback.print_tb(e.__traceback__)
+        logger.error('Unable to find cadre.config file. Make sure you have cadre.config inside conf directory !')
+        raise Exception('Unable to find cadre.config file !')
+
+
+def get_microsoft_userinfo_endpoint():
+    try:
+        config = get_cadre_config()
+        userinfo_ep = config['MICROSOFT']['userinfo-endpoint']
+        return userinfo_ep
+    except Exception as e:
+        traceback.print_tb(e.__traceback__)
+        logger.error('Unable to find cadre.config file. Make sure you have cadre.config inside conf directory !')
+        raise Exception('Unable to find cadre.config file !')
