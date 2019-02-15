@@ -149,13 +149,14 @@ def add_user(email, full_name, institution, login_count):
             user_info.created_on = datetime.now()
             user_info.created_by = login_id
             token = user_info.generate_auth_token(600)
+            token = str(token.decode('utf-8'))
             logger.info(token)
             user_info.token = token
             db.session.add(user_info)
             db.session.commit()
         else:
             token = user_info.generate_auth_token(600)
-            logger.info(token)
+            logger.info(str(token.decode('utf-8')))
             user_info.token = token
             user_info.modified_on = datetime.now()
             db.session.commit()
