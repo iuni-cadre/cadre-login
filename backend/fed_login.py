@@ -258,7 +258,8 @@ def facebook_callback():
     logger.info(access_token_json)
     access_token = access_token_json['access_token']
     user_info_args = {
-        "access_token": access_token
+        "access_token": access_token,
+        "fields": 'email, name'
     }
 
     user_info_response = requests.post(util.config_reader.get_facebook_userinfo_endpoint(), data=user_info_args)
@@ -275,7 +276,7 @@ def facebook_callback():
     if name is None:
         name = email
     login_count = add_user(email, name, 'google')
-    return render_template('login-success.html', full_name=name, institution='google', login_count=login_count)
+    return render_template('login-success.html', full_name=name, institution='facebook', login_count=login_count)
 
 
 @app.route('/login-fail')
