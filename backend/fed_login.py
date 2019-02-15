@@ -1,3 +1,4 @@
+from datetime import timedelta
 from datetime import datetime
 import traceback
 
@@ -43,7 +44,7 @@ import util.config_reader
 
 app.config.update({'SERVER_NAME': util.config_reader.get_server_name(),
                    'SECRET_KEY': util.config_reader.get_app_secret(),
-                   'PERMANENT_SESSION_LIFETIME': datetime.timedelta(days=7).total_seconds(),
+                   'PERMANENT_SESSION_LIFETIME': timedelta(days=7).total_seconds(),
                    'PREFERRED_URL_SCHEME': 'https',
                    'DEBUG': True})
 
