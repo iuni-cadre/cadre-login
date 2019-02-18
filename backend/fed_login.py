@@ -273,7 +273,7 @@ def google_callback():
     login_count = 0
     token = add_user(email, name, 'google', login_count)
     logger.info(token)
-    return render_template('login-success.html', full_name=name, institution='google')
+    return render_template('login-success.html', full_name=name, institution='google', token=token)
 
 
 
@@ -326,7 +326,7 @@ def facebook_callback():
     login_count = 0
     token = add_user(email, name, 'google', login_count)
     logger.info(token)
-    return render_template('login-success.html', full_name=name, institution='facebook')
+    return render_template('login-success.html', full_name=name, institution='facebook', token=token)
 
 
 @app.route('/api/auth/microsoft/login')
@@ -377,8 +377,7 @@ def microsoft_callback():
     login_count = 0
     token = add_user(email, name, 'microsoft', login_count)
     logger.info(token)
-    return render_template('login-success.html', full_name=name, institution='microsoft')
-
+    return render_template('login-success.html', full_name=name, institution='microsoft', token=token)
 
 
 @app.route('/login-fail')
