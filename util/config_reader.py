@@ -35,9 +35,6 @@ def get_server_name():
         raise Exception('Unable to find cadre.config file !')
 
 
-
-
-
 def get_app_secret():
     try:
         config = get_cadre_config()

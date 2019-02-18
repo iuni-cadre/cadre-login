@@ -21,7 +21,7 @@ import util.config_reader
 app = Flask(__name__)
 logger = logging.getLogger(__name__)
 
-app.config['SECRET_KEY'] = 'test key'
+app.config['SECRET_KEY'] = util.config_reader.get_app_secret()
 url = util.config_reader.get_cadre_db_hostname() + ':' + util.config_reader.get_cadre_db_port()
 DB_URL = 'postgres://{user}:{pw}@{url}/{db}'.format(user=util.config_reader.get_cadre_db_username(),
                                                     pw=util.config_reader.get_cadre_db_pwd(),

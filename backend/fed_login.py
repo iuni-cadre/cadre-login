@@ -222,7 +222,7 @@ def cilogon_callback():
     login_count = 0
     token = add_user(email,full_name, institution, login_count)
     logger.info(token)
-    return render_template('login-success.html', full_name=full_name, institution=institution)
+    return render_template('login-success.html', full_name=full_name, institution=institution, token=token)
 
 
 @app.route('/api/auth/google/login')
