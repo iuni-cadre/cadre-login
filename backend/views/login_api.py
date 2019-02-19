@@ -68,7 +68,7 @@ def add_user(email, full_name, institution, login_count):
         traceback.print_tb(e.__traceback__)
 
 
-@blueprint.route('/login')
+@blueprint.route('/api/auth/cilogon/login')
 @auth.oidc_auth('cilogon')
 def cilogon_login():
     logger.info('Cilogon login')
