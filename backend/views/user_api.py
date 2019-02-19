@@ -88,16 +88,16 @@ def authenticate_token():
                     resp = Response(response=success_message,
                                     mimetype="application/json",
                                     status=200,
-                                    headers={"x-enso-auth-token": user.token,
-                                             "Access-Control-Expose-Headers": "x-enso-auth-token"})
+                                    headers={"x-cadre-auth-token": user.token,
+                                             "Access-Control-Expose-Headers": "x-cadre-auth-token"})
                     return resp
                 logger.info('Invalid user token !')
                 error_message = "{'Error': 'Invalid user token'}"
                 resp = Response(response=error_message,
                                 mimetype="application/json",
                                 status=401,
-                                headers={"x-enso-auth-token": user.token,
-                                         "Access-Control-Expose-Headers": "x-enso-auth-token"})
+                                headers={"x-cadre-auth-token": user.token,
+                                         "Access-Control-Expose-Headers": "x-cadre-auth-token"})
                 return resp
         logger.error('Invalid user name provided !')
         return jsonify({'Error': 'Invalid user name'}), 401
@@ -147,8 +147,8 @@ def get_user_info():
             resp = Response(response=json.dumps(resp_message),
                             mimetype="application/json",
                             status=200,
-                            headers={"x-enso-auth-token": user.token,
-                                     "Access-Control-Expose-Headers": "x-enso-auth-token"})
+                            headers={"x-cadre-auth-token": user.token,
+                                     "Access-Control-Expose-Headers": "x-cadre-auth-token"})
             return resp
         logger.info('Unable to retrieve the user !')
         return False
@@ -220,15 +220,15 @@ def get_all_users():
                 resp = Response(response=json.dumps(resp_json),
                                 mimetype="application/json",
                                 status=200,
-                                headers={"x-enso-auth-token": user.token,
-                                         "Access-Control-Expose-Headers": "x-enso-auth-token"})
+                                headers={"x-cadre-auth-token": user.token,
+                                         "Access-Control-Expose-Headers": "x-cadre-auth-token"})
                 return resp
             resp_json = {'users': 0}
             resp = Response(response=json.dumps(resp_json),
                             mimetype="application/json",
                             status=200,
-                            headers={"x-enso-auth-token": user.token,
-                                     "Access-Control-Expose-Headers": "x-enso-auth-token"})
+                            headers={"x-cadre-auth-token": user.token,
+                                     "Access-Control-Expose-Headers": "x-cadre-auth-token"})
             return resp
         logger.info('Unable to validate user token !')
         return jsonify({'status': 'unable to validate user token'}), 401
@@ -312,8 +312,8 @@ def update_user(username):
                     resp = Response(response=json.dumps(response_json),
                                     mimetype="application/json",
                                     status=201,
-                                    headers={"x-enso-auth-token": user.token,
-                                             "Access-Control-Expose-Headers": "x-enso-auth-token"})
+                                    headers={"x-cadre-auth-token": user.token,
+                                             "Access-Control-Expose-Headers": "x-cadre-auth-token"})
                     return resp
                     # logger.info('Unable to validate password !')
                     # return jsonify({'error': 'Password validation failed'}), 401
@@ -354,8 +354,8 @@ def delete_user(username):
                 resp = Response(response=json.dumps(user_response),
                                 mimetype="application/json",
                                 status=200,
-                                headers={"x-enso-auth-token": user.token,
-                                         "Access-Control-Expose-Headers": "x-enso-auth-token"})
+                                headers={"x-cadre-auth-token": user.token,
+                                         "Access-Control-Expose-Headers": "x-cadre-auth-token"})
         logger.info('Unable to validate user token !')
         return jsonify({'status': 'unable to validate user token'}), 401
     except Exception as e:
@@ -391,8 +391,8 @@ def get_user(username):
                     resp = Response(response=json.dumps(user_response),
                                     mimetype="application/json",
                                     status=200,
-                                    headers={"x-enso-auth-token": user.token,
-                                             "Access-Control-Expose-Headers": "x-enso-auth-token"})
+                                    headers={"x-cadre-auth-token": user.token,
+                                             "Access-Control-Expose-Headers": "x-cadre-auth-token"})
                     return resp
                 else:
                     logger.info('Unable to find user ' + username + ' !')
