@@ -1,14 +1,12 @@
 import os, sys
 from datetime import datetime
 
-from flask import Flask, logging
-from flask_sqlalchemy import SQLAlchemy
+from flask import Blueprint, logging, current_app
 from sqlalchemy import ForeignKey
 from passlib.apps import custom_app_context as pwd_context
 from itsdangerous import (TimedJSONWebSignatureSerializer
                           as Serializer, BadSignature, SignatureExpired)
 from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy_utils import database_exists, create_database
 
 abspath = os.path.abspath(os.path.dirname(__file__))
@@ -16,24 +14,10 @@ cadre = os.path.dirname(abspath)
 util = cadre + '/util'
 sys.path.append(cadre)
 
-import util.config_reader
+blueprint = Blueprint('data_model', __name__)
+logger = logging.getLogger('data_model')
 
-app = Flask(__name__)
-logger = logging.getLogger(__name__)
-
-app.config['SECRET_KEY'] = util.config_reader.get_app_secret()
-url = util.config_reader.get_cadre_db_hostname() + ':' + util.config_reader.get_cadre_db_port()
-DB_URL = 'postgres://{user}:{pw}@{url}/{db}'.format(user=util.config_reader.get_cadre_db_username(),
-                                                    pw=util.config_reader.get_cadre_db_pwd(),
-                                                    url=url,
-                                                    db=util.config_reader.get_cadre_db_name())
-app.config['SQLALCHEMY_DATABASE_URI'] = DB_URL
-app.config['SQLALCHEMY_COMMIT_ON_TEARDOWN'] = True
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-db = SQLAlchemy(app)
-
-Base = declarative_base()
-
+from backend import db, DB_URL
 
 def create_tables():
     engine = create_engine(DB_URL)
@@ -41,6 +25,7 @@ def create_tables():
         create_database(engine.url)
     db.create_all()
     db.session.commit()
+    logger.info("Database initialized...")
 
 
 class UserLogin(db.Model):
@@ -74,13 +59,13 @@ class User(db.Model):
 
     def generate_auth_token(self, expiration=600):
         logger.info('******* generate token ******** ')
-        s = Serializer(app.config['SECRET_KEY'], expires_in=expiration)
+        s = Serializer(current_app.config['SECRET_KEY'], expires_in=expiration)
         dumps = s.dumps({'id': self.user_id})
         return dumps
 
     @staticmethod
     def verify_auth_token(token):
-        s = Serializer(app.config['SECRET_KEY'])
+        s = Serializer(current_app.config['SECRET_KEY'])
         try:
             data = s.loads(token)
         except SignatureExpired:
@@ -98,7 +83,7 @@ class User(db.Model):
 
     @staticmethod
     def get_user(token):
-        s = Serializer(app.config['SECRET_KEY'])
+        s = Serializer(current_app.config['SECRET_KEY'])
         try:
             data = s.loads(token)
         except SignatureExpired:

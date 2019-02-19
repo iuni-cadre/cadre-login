@@ -17,28 +17,33 @@ sys.path.append(parent)
 blueprint = Blueprint('login_api', __name__)
 logger = logging.getLogger('login_api')
 
-from backend.data_model import User, UserLogin,  db
+from .data_model import User, UserLogin
 
 import util.config_reader
-from backend import auth
+from backend import auth, db
 
 
 def add_user(email, full_name, institution, login_count):
     try:
+        logger.info(email)
         user_login = UserLogin.query.filter_by(social_id=email).first()
         if not user_login:
+            logger.info("New user")
             login_count += 1
             user_login = UserLogin(social_id=email, name=full_name, email=email, institution=institution,
                                    login_count=login_count)
             db.session.add(user_login)
             db.session.commit()
             login_id = user_login.id
+            logger.info(login_count)
         else:
+            logger.info("Existing user")
             login_count = user_login.login_count
             login_count += 1
             user_login.login_count = login_count
             db.session.commit()
             login_id = user_login.id
+            logger.info(login_count)
         user_info = User.query.filter_by(login_id=login_id).first()
         if not user_info:
             user_info = User(login_id=login_id, username=email, email=email)

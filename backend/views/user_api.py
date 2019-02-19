@@ -1,15 +1,19 @@
-from datetime import datetime
-from flask import jsonify, request, escape, abort, Response, Blueprint
-import sys, os, traceback
-import logging.config
 import json
+import logging.config
+import os
+import sys
+import traceback
+from datetime import datetime
+
+from flask import jsonify, request, escape, abort, Response, Blueprint
 
 abspath = os.path.abspath(os.path.dirname(__file__))
 parent = os.path.dirname(abspath)
 util = parent + '/util'
 sys.path.append(parent)
 
-from backend.data_model import User, UserLogin, UserTeam, UserRole, db
+from .data_model import User, UserRole
+from backend import db
 
 blueprint = Blueprint('user_api', __name__)
 logger = logging.getLogger('user_api')
