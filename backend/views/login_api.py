@@ -1,130 +1,27 @@
-from datetime import timedelta
 from datetime import datetime
 import traceback
 
 import flask
 import requests
-from flask import Flask, jsonify, render_template, request
+from flask import jsonify, render_template, request, Blueprint
 import sys, os
-from os import path, remove
 import logging.config
-import json
 
-from flask_pyoidc.flask_pyoidc import OIDCAuthentication
-from flask_pyoidc.provider_configuration import ProviderConfiguration, ClientMetadata, ProviderMetadata
 from flask_pyoidc.user_session import UserSession
-
 
 abspath = os.path.abspath(os.path.dirname(__file__))
 parent = os.path.dirname(abspath)
 util = parent + '/util'
+templates = parent + '/templates'
 sys.path.append(parent)
 
-import backend.data_model
-from backend.data_model import User, UserLogin, UserTeam, UserRole, db, app
+blueprint = Blueprint('login_api', __name__)
+logger = logging.getLogger('login_api')
 
-# sys.path.append("pycharm-debug-py3k.egg")
-
-# If applicable, delete the existing log file to generate a fresh log file during each execution
-logfile_path = abspath + "/cadre_logging.log"
-if path.isfile(logfile_path):
-    remove(logfile_path)
-
-log_conf = abspath + '/logging-conf.json'
-with open(log_conf, 'r') as logging_configuration_file:
-    config_dict = json.load(logging_configuration_file)
-
-logging.config.dictConfig(config_dict)
-
-# Log that the logger was configured
-logger = logging.getLogger(__name__)
-logger.info('Completed configuring logger()!')
+from backend.data_model import User, UserLogin,  db
 
 import util.config_reader
-
-app.config.update({'SERVER_NAME': util.config_reader.get_server_name(),
-                   'SECRET_KEY': util.config_reader.get_app_secret(),
-                   'PERMANENT_SESSION_LIFETIME': timedelta(days=7).total_seconds(),
-                   'PREFERRED_URL_SCHEME': 'https',
-                   'DEBUG': True})
-
-CILOGON_CLIENT_ID = util.config_reader.get_cilogon_client_id()
-CILOGON_CLIENT_SECRET = util.config_reader.get_cilogon_client_secret()
-
-cilogon_auth_params = {
-    'scope': ['openid', 'profile', 'email', 'org.cilogon.userinfo'],
-    'redirect_uri': util.config_reader.get_cilogon_redirect_uri()
-}
-
-
-cilogon_provider_metadata = ProviderMetadata(issuer=util.config_reader.get_cilogon_issuer(),
-                                             authorization_endpoint=util.config_reader.get_cilogon_authorization_ep(),
-                                             jwks_uri=util.config_reader.get_cilogon_jwks_uri(),
-                                             token_endpoint=util.config_reader.get_cilogon_token_endpoint(),
-                                             userinfo_endpoint=util.config_reader.get_cilogon_userinfo_endpoint(),
-                                             redirect_uris=util.config_reader.get_cilogon_redirect_uri())
-
-cilogon_provider_config = ProviderConfiguration(provider_metadata=cilogon_provider_metadata,
-                                                client_metadata=ClientMetadata(CILOGON_CLIENT_ID, CILOGON_CLIENT_SECRET),
-                                                auth_request_params=cilogon_auth_params)
-
-GOOGLE_CLIENT_ID = util.config_reader.get_google_client_id()
-GOOGLE_CLIENT_SECRET = util.config_reader.get_google_client_secret()
-
-google_auth_params = {
-    'scope': ['openid', 'email', 'profile'],
-    'redirect_uri': util.config_reader.get_google_redirect_uri()
-}
-
-google_provider_metadata = ProviderMetadata(issuer=util.config_reader.get_google_issuer(),
-                                            authorization_endpoint=util.config_reader.get_google_auth_endpoint(),
-                                            token_endpoint=util.config_reader.get_google_token_endpoint(),
-                                            redirect_uris=util.config_reader.get_google_redirect_uri())
-
-google_provider_config = ProviderConfiguration(provider_metadata=google_provider_metadata,
-                                               client_metadata=ClientMetadata(GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET),
-                                               auth_request_params=google_auth_params)
-
-FACEBOOK_CLIENT_ID = util.config_reader.get_facebook_client_id()
-FACEBOOK_CLIENT_SECRET = util.config_reader.get_facebook_client_secret()
-
-facebook_auth_params = {
-    'scope': ['email'],
-    'redirect_uri': util.config_reader.get_facebook_redirect_uri()
-}
-
-facebook_provider_metadata = ProviderMetadata(issuer=util.config_reader.get_facebook_issuer(),
-                                            authorization_endpoint=util.config_reader.get_facebook_auth_endpoint(),
-                                            token_endpoint=util.config_reader.get_facebook_auth_endpoint(),
-                                            redirect_uris=util.config_reader.get_facebook_redirect_uri())
-
-facebook_provider_config = ProviderConfiguration(provider_metadata=facebook_provider_metadata,
-                                                 client_metadata=ClientMetadata(FACEBOOK_CLIENT_ID, FACEBOOK_CLIENT_SECRET),
-                                                 auth_request_params=facebook_auth_params)
-
-MICROSOFT_CLIENT_ID = util.config_reader.get_facebook_client_id()
-MICROSOFT_CLIENT_SECRET = util.config_reader.get_facebook_client_secret()
-
-microsoft_auth_params = {
-    'scope': ['email', 'profile'],
-    'redirect_uri': util.config_reader.get_microsoft_redirect_uri()
-}
-
-microsoft_provider_metadata = ProviderMetadata(issuer=util.config_reader.get_microsoft_issuer(),
-                                            authorization_endpoint=util.config_reader.get_microsoft_auth_endpoint(),
-                                            redirect_uris=util.config_reader.get_microsoft_redirect_uri())
-
-microsoft_provider_config = ProviderConfiguration(provider_metadata=microsoft_provider_metadata,
-                                               client_metadata=ClientMetadata(MICROSOFT_CLIENT_ID, MICROSOFT_CLIENT_SECRET),
-                                               auth_request_params=microsoft_auth_params)
-
-
-auth = OIDCAuthentication({
-    'cilogon': cilogon_provider_config,
-    'google': google_provider_config,
-    'facebook': facebook_provider_config,
-    'microsoft': microsoft_provider_config
-}, app)
+from backend import auth
 
 
 def add_user(email, full_name, institution, login_count):
@@ -167,7 +64,7 @@ def add_user(email, full_name, institution, login_count):
         traceback.print_tb(e.__traceback__)
 
 
-@app.route('/login')
+@blueprint.route('/login')
 @auth.oidc_auth('cilogon')
 def cilogon_login():
     logger.info('Cilogon login')
@@ -177,17 +74,17 @@ def cilogon_login():
                    userinfo=user_session.userinfo)
 
 
-@app.route('/')
+@blueprint.route('/')
 def home():
-    return render_template('login.html')
+    return render_template(templates + '/login.html')
 
 
-@app.route('/login-success')
+@blueprint.route('/login-success')
 def login_success():
-    return render_template('login-success.html')
+    return render_template(templates + '/login-success.html')
 
 
-@app.route('/api/auth/callback/')
+@blueprint.route('/api/auth/callback/')
 def cilogon_callback():
     logger.info("API CALLBACK")
     params = request.args.get('code')
@@ -218,14 +115,14 @@ def cilogon_callback():
 
     if email is None:
         logger.error('Authentication failed.')
-        return render_template('login-failed.html')
+        return render_template(templates + '/login-failed.html')
     login_count = 0
     token = add_user(email,full_name, institution, login_count)
     logger.info(token)
-    return render_template('login-success.html', full_name=full_name, institution=institution, token=token)
+    return render_template(templates + '/login-success.html', full_name=full_name, institution=institution, token=token)
 
 
-@app.route('/api/auth/google/login')
+@blueprint.route('/api/auth/google/login')
 @auth.oidc_auth('google')
 def google_login():
     logger.info('Google login')
@@ -235,7 +132,7 @@ def google_login():
                    userinfo=user_session.userinfo)
 
 
-@app.route('/api/auth/google/callback')
+@blueprint.route('/api/auth/google/callback')
 def google_callback():
     logger.info("API CALLBACK")
     scope = request.args.get('scope')
@@ -267,17 +164,16 @@ def google_callback():
     logger.info(name)
     if email is None:
         logger.error('Authentication failed.')
-        return render_template('login-failed.html')
+        return render_template(templates + '/login-failed.html')
     if name is None:
         name = email
     login_count = 0
     token = add_user(email, name, 'google', login_count)
     logger.info(token)
-    return render_template('login-success.html', full_name=name, institution='google', token=token)
+    return render_template(templates + '/login-success.html', full_name=name, institution='google', token=token)
 
 
-
-@app.route('/api/auth/facebook/login')
+@blueprint.route('/api/auth/facebook/login')
 @auth.oidc_auth('facebook')
 def facebook_login():
     logger.info('Facebook login')
@@ -287,7 +183,7 @@ def facebook_login():
                    userinfo=user_session.userinfo)
 
 
-@app.route('/api/auth/facebook/callback')
+@blueprint.route('/api/auth/facebook/callback')
 def facebook_callback():
     logger.info("API CALLBACK")
     scope = request.args.get('scope')
@@ -320,16 +216,16 @@ def facebook_callback():
     logger.info(name)
     if email is None:
         logger.error('Authentication failed.')
-        return render_template('login-failed.html')
+        return render_template(templates + '/login-failed.html')
     if name is None:
         name = email
     login_count = 0
     token = add_user(email, name, 'google', login_count)
     logger.info(token)
-    return render_template('login-success.html', full_name=name, institution='facebook', token=token)
+    return render_template(templates + '/login-success.html', full_name=name, institution='facebook', token=token)
 
 
-@app.route('/api/auth/microsoft/login')
+@blueprint.route('/api/auth/microsoft/login')
 @auth.oidc_auth('microsoft')
 def microsoft_login():
     logger.info('Microsoft login')
@@ -339,7 +235,7 @@ def microsoft_login():
                    userinfo=user_session.userinfo)
 
 
-@app.route('/api/auth/microsoft/callback')
+@blueprint.route('/api/auth/microsoft/callback')
 def microsoft_callback():
     logger.info("API CALLBACK")
     scope = request.args.get('scope')
@@ -371,45 +267,39 @@ def microsoft_callback():
     logger.info(name)
     if email is None:
         logger.error('Authentication failed.')
-        return render_template('login-failed.html')
+        return render_template(templates + '/login-failed.html')
     if name is None:
         name = email
     login_count = 0
     token = add_user(email, name, 'microsoft', login_count)
     logger.info(token)
-    return render_template('login-success.html', full_name=name, institution='microsoft', token=token)
+    return render_template(templates + '/login-success.html', full_name=name, institution='microsoft', token=token)
 
 
-@app.route('/login-fail')
+@blueprint.route('/login-fail')
 def login_fail():
-    return render_template('login-fail.html')
+    return render_template(templates + '/login-fail.html')
 
 
-@app.route('/logout')
+@blueprint.route('/logout')
 @auth.oidc_logout
 def logout():
-    return render_template('logout.html')
+    return render_template(templates + '/logout.html')
 
 
-@app.route('/api/<path:fallback>')
+@blueprint.route('/api/<path:fallback>')
 def api_fallback(fallback):
     # this route should catch all api calls that aren't actually endpoints
     return jsonify({'error': 'Unknown Endpoint'}), 404
 
 
-@app.route('/<path:fallback>')
+@blueprint.route('/<path:fallback>')
 def fallback(fallback):
-    return render_template("login.html")
+    return render_template(templates + "/login.html")
 
 
 @auth.error_view
 def error(error=None, error_description=None):
     return jsonify({'error': error, 'message': error_description})
 
-
-if __name__ == '__main__':
-    logger.info('Initializing !')
-    auth.init_app(app)
-    backend.data_model.create_tables()
-    app.run(host='127.0.0.1', port=5000, debug=True)
 

@@ -1,21 +1,21 @@
 from datetime import datetime
-import flask
-from flask import Flask, jsonify, render_template, request, escape, abort, Response
+from flask import jsonify, request, escape, abort, Response, Blueprint
 import sys, os, traceback
-from os import path, remove
 import logging.config
 import json
-logger = logging.getLogger(__name__)
 
 abspath = os.path.abspath(os.path.dirname(__file__))
 parent = os.path.dirname(abspath)
 util = parent + '/util'
 sys.path.append(parent)
 
-from backend.data_model import User, UserLogin, UserTeam, UserRole, db, app
+from backend.data_model import User, UserLogin, UserTeam, UserRole, db
+
+blueprint = Blueprint('user_api', __name__)
+logger = logging.getLogger('user_api')
 
 
-@app.route('/api/login', methods=['POST'])
+@blueprint.route('/api/login', methods=['POST'])
 def login_user():
     logger.info('Login user to the system !')
     try:
@@ -43,7 +43,7 @@ def login_user():
         return jsonify({'error': str(e)}), 500
 
 
-@app.route('/api/logout', methods=['GET'])
+@blueprint.route('/api/logout', methods=['GET'])
 def logout_user():
     logger.info('Logout User !')
     try:
@@ -64,7 +64,7 @@ def logout_user():
         return jsonify({'error': str(e)}), 500
 
 
-@app.route('/api/authenticate-token', methods=['GET'])
+@blueprint.route('/api/authenticate-token', methods=['GET'])
 def authenticate_token():
     logger.info('Authenticate token !')
     try:
@@ -103,7 +103,7 @@ def authenticate_token():
         return jsonify({'error': str(e)}), 500
 
 
-@app.route('/api/renew-token', methods=['POST'])
+@blueprint.route('/api/renew-token', methods=['POST'])
 def renew_token():
     logger.info('Renew token !')
     try:
@@ -128,7 +128,7 @@ def renew_token():
         return jsonify({'error': str(e)}), 500
 
 
-@app.route('/api/current-user-info', methods=['GET'])
+@blueprint.route('/api/current-user-info', methods=['GET'])
 def get_user_info():
     logger.info('Get Current User Info !')
     try:
@@ -154,7 +154,7 @@ def get_user_info():
         return jsonify({'error': str(e)}), 500
 
 
-@app.route('/api/user/create', methods=['POST'])
+@blueprint.route('/api/user/create', methods=['POST'])
 def new_user():
     logger.info('Register new user !')
     try:
@@ -198,7 +198,7 @@ def new_user():
         return jsonify({'error': str(e)}), 500
 
 
-@app.route('/api/user', methods=['GET'])
+@blueprint.route('/api/user', methods=['GET'])
 def get_all_users():
     logger.info('Get all users !')
     try:
@@ -233,7 +233,7 @@ def get_all_users():
         return jsonify({'error': str(e)}), 500
 
 
-@app.route('/api/user/<string:username>/update', methods=['POST'])
+@blueprint.route('/api/user/<string:username>/update', methods=['POST'])
 def update_user(username):
     logger.info('Update user !')
     try:
@@ -324,7 +324,7 @@ def update_user(username):
         return jsonify({'error': str(e)}), 500
 
 
-@app.route('/api/user/<string:username>/delete', methods=['POST'])
+@blueprint.route('/api/user/<string:username>/delete', methods=['POST'])
 def delete_user(username):
     logger.info('Delete user !')
     try:
@@ -359,7 +359,7 @@ def delete_user(username):
         return jsonify({'error': str(e)}), 500
 
 
-@app.route('/api/user/<string:username>', methods=['GET'])
+@blueprint.route('/api/user/<string:username>', methods=['GET'])
 def get_user(username):
     logger.info('Get user !')
     try:
