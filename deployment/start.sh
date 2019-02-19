@@ -2,4 +2,4 @@
 
 pushd ../backend
 source ../venv/bin/activate
-exec python fed_login.py
+exec python ../run_backend.py`

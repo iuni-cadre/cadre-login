@@ -12,7 +12,6 @@ from flask_pyoidc.user_session import UserSession
 abspath = os.path.abspath(os.path.dirname(__file__))
 parent = os.path.dirname(abspath)
 util = parent + '/util'
-templates = parent + '/templates'
 sys.path.append(parent)
 
 blueprint = Blueprint('login_api', __name__)
@@ -76,12 +75,12 @@ def cilogon_login():
 
 @blueprint.route('/')
 def home():
-    return render_template(templates + '/login.html')
+    return render_template('login.html')
 
 
 @blueprint.route('/login-success')
 def login_success():
-    return render_template(templates + '/login-success.html')
+    return render_template('login-success.html')
 
 
 @blueprint.route('/api/auth/callback/')
@@ -115,11 +114,11 @@ def cilogon_callback():
 
     if email is None:
         logger.error('Authentication failed.')
-        return render_template(templates + '/login-failed.html')
+        return render_template('login-failed.html')
     login_count = 0
     token = add_user(email,full_name, institution, login_count)
     logger.info(token)
-    return render_template(templates + '/login-success.html', full_name=full_name, institution=institution, token=token)
+    return render_template('login-success.html', full_name=full_name, institution=institution, token=token)
 
 
 @blueprint.route('/api/auth/google/login')
@@ -164,13 +163,13 @@ def google_callback():
     logger.info(name)
     if email is None:
         logger.error('Authentication failed.')
-        return render_template(templates + '/login-failed.html')
+        return render_template('login-failed.html')
     if name is None:
         name = email
     login_count = 0
     token = add_user(email, name, 'google', login_count)
     logger.info(token)
-    return render_template(templates + '/login-success.html', full_name=name, institution='google', token=token)
+    return render_template('login-success.html', full_name=name, institution='google', token=token)
 
 
 @blueprint.route('/api/auth/facebook/login')
@@ -216,13 +215,13 @@ def facebook_callback():
     logger.info(name)
     if email is None:
         logger.error('Authentication failed.')
-        return render_template(templates + '/login-failed.html')
+        return render_template('login-failed.html')
     if name is None:
         name = email
     login_count = 0
     token = add_user(email, name, 'google', login_count)
     logger.info(token)
-    return render_template(templates + '/login-success.html', full_name=name, institution='facebook', token=token)
+    return render_template('login-success.html', full_name=name, institution='facebook', token=token)
 
 
 @blueprint.route('/api/auth/microsoft/login')
@@ -267,24 +266,24 @@ def microsoft_callback():
     logger.info(name)
     if email is None:
         logger.error('Authentication failed.')
-        return render_template(templates + '/login-failed.html')
+        return render_template('login-failed.html')
     if name is None:
         name = email
     login_count = 0
     token = add_user(email, name, 'microsoft', login_count)
     logger.info(token)
-    return render_template(templates + '/login-success.html', full_name=name, institution='microsoft', token=token)
+    return render_template('login-success.html', full_name=name, institution='microsoft', token=token)
 
 
 @blueprint.route('/login-fail')
 def login_fail():
-    return render_template(templates + '/login-fail.html')
+    return render_template('login-fail.html')
 
 
 @blueprint.route('/logout')
 @auth.oidc_logout
 def logout():
-    return render_template(templates + '/logout.html')
+    return render_template('logout.html')
 
 
 @blueprint.route('/api/<path:fallback>')
@@ -295,7 +294,7 @@ def api_fallback(fallback):
 
 @blueprint.route('/<path:fallback>')
 def fallback(fallback):
-    return render_template(templates + "/login.html")
+    return render_template("login.html")
 
 
 @auth.error_view
