@@ -209,6 +209,7 @@ def get_all_users():
         token = request.headers.get('auth-token')
         user = User.verify_auth_token(token)
         if user is not None:
+            logger.info("User token verified")
             all_users = User.query.all()
             user_name_list = []
             for user in all_users:

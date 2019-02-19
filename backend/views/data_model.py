@@ -59,26 +59,24 @@ class User(db.Model):
 
     def generate_auth_token(self, expiration=600):
         logger.info('******* generate token ******** ')
-        s = Serializer(current_app.config['SECRET_KEY'], expires_in=expiration)
+        secret_key = current_app.config['SECRET_KEY']
+        s = Serializer(secret_key, expires_in=expiration)
         dumps = s.dumps({'id': self.user_id})
         return dumps
 
     @staticmethod
     def verify_auth_token(token):
-        s = Serializer(current_app.config['SECRET_KEY'])
+        secret_key = current_app.config['SECRET_KEY']
+        s = Serializer(secret_key)
         try:
             data = s.loads(token)
         except SignatureExpired:
+            logger.info("Signature expired")
             return None  # valid token, but expired
         except BadSignature:
+            logger.info("Bad Signature")
             return None  # invalid token
         user = User.query.get(data['id'])
-        existing_tokens = user.token
-        if existing_tokens is not None:
-            if token in existing_tokens.values():
-                return user
-            else:
-                return None
         return user
 
     @staticmethod
