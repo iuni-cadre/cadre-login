@@ -1,5 +1,5 @@
 #!/bin/bash
 
-pushd ../backend
-source ../venv/bin/activate
-exec python ../run_backend.py
+pushd /home/ubuntu/cadre/cadre-login
+source venv/bin/activate
+exec python run_backend.py
