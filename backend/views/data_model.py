@@ -19,6 +19,7 @@ logger = logging.getLogger('data_model')
 
 from backend import db, DB_URL
 
+
 def create_tables():
     engine = create_engine(DB_URL)
     if not database_exists(engine.url):

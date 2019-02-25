@@ -5,6 +5,7 @@ import sys, os
 from os import path, remove
 import logging.config
 import json
+from flask_cors import CORS
 
 from flask_pyoidc.flask_pyoidc import OIDCAuthentication
 from flask_pyoidc.provider_configuration import ProviderConfiguration, ClientMetadata, ProviderMetadata
@@ -15,6 +16,7 @@ util = parent + '/util'
 sys.path.append(parent)
 
 app = Flask(__name__)
+CORS(app)
 
 # If applicable, delete the existing log file to generate a fresh log file during each execution
 logfile_path = abspath + "/cadre_logging.log"
