@@ -68,7 +68,7 @@ def logout_user():
         return jsonify({'error': str(e)}), 500
 
 
-@blueprint.route('/api/authenticate-token', methods=['GET'])
+@blueprint.route('/api/authenticate-token', methods=['POST'])
 def authenticate_token():
     logger.info('Authenticate token !')
     try:
