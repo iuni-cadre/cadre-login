@@ -3,7 +3,7 @@ import traceback
 
 import flask
 import requests
-from flask import jsonify, render_template, request, Blueprint
+from flask import jsonify, render_template, request, Blueprint, redirect
 import sys, os
 import logging.config
 
@@ -123,7 +123,7 @@ def cilogon_callback():
     login_count = 0
     token = add_user(email,full_name, institution, login_count)
     logger.info(token)
-    return render_template('login-success.html', full_name=full_name, institution=institution, token=token)
+    return redirect('http://cadrerac-env-2.mdudyq5agh.us-east-2.elasticbeanstalk.com/?username=' + email + '&token=' + token)
 
 
 @blueprint.route('/api/auth/google/login')
@@ -174,7 +174,7 @@ def google_callback():
     login_count = 0
     token = add_user(email, name, 'google', login_count)
     logger.info(token)
-    return render_template('login-success.html', full_name=name, institution='google', token=token)
+    return redirect('http://cadrerac-env-2.mdudyq5agh.us-east-2.elasticbeanstalk.com/?username=' + email + '&token=' + token)
 
 
 @blueprint.route('/api/auth/facebook/login')
@@ -226,7 +226,7 @@ def facebook_callback():
     login_count = 0
     token = add_user(email, name, 'google', login_count)
     logger.info(token)
-    return render_template('login-success.html', full_name=name, institution='facebook', token=token)
+    return redirect('http://cadrerac-env-2.mdudyq5agh.us-east-2.elasticbeanstalk.com/?username=' + email + '&token=' + token)
 
 
 @blueprint.route('/api/auth/microsoft/login')
@@ -277,7 +277,7 @@ def microsoft_callback():
     login_count = 0
     token = add_user(email, name, 'microsoft', login_count)
     logger.info(token)
-    return render_template('login-success.html', full_name=name, institution='microsoft', token=token)
+    return redirect('http://cadrerac-env-2.mdudyq5agh.us-east-2.elasticbeanstalk.com/?username=' + email + '&token=' + token)
 
 
 @blueprint.route('/login-fail')
