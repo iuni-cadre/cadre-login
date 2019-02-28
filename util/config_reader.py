@@ -424,7 +424,7 @@ def get_cadre_dashboard_uri():
     try:
         config = get_cadre_config()
         dashboard_url = config['DEFAULT']['cadre_dashboard']
-        return cadre_dashboard
+        return dashboard_url
     except Exception as e:
         traceback.print_tb(e.__traceback__)
         logger.error('Unable to find cadre.config file. Make sure you have cadre.config inside conf directory !')
