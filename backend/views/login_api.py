@@ -17,15 +17,28 @@ sys.path.append(parent)
 blueprint = Blueprint('login_api', __name__)
 logger = logging.getLogger('login_api')
 
-from .data_model import User, UserLogin
+from .data_model import User, UserLogin, UserRole
 
 import util.config_reader
 from backend import auth, db
+from util.login_util import btaa_members, paying_members
+
+cadre_dashboard_url = util.config_reader.get_cadre_dashboard_uri()
 
 
 def add_user(email, full_name, institution, login_count):
     try:
         logger.info(email)
+        roles = []
+        user_id = 0
+        if institution in btaa_members:
+            if institution in paying_members:
+                roles.append('wos_gold')
+            else:
+                roles.append('wos')
+        else:
+            roles.append('guest')
+
         user_login = UserLogin.query.filter_by(social_id=email).first()
         if not user_login:
             logger.info("New user")
@@ -55,6 +68,7 @@ def add_user(email, full_name, institution, login_count):
             user_info.token = token
             db.session.add(user_info)
             db.session.commit()
+            user_id = user_info.user_id
         else:
             token = user_info.generate_auth_token(600)
             token = str(token.decode('utf-8'))
@@ -62,7 +76,20 @@ def add_user(email, full_name, institution, login_count):
             user_info.token = token
             user_info.modified_on = datetime.now()
             db.session.commit()
-        return token
+            user_id = user_info.user_id
+        for role in roles:
+            user_roles = UserRole.query.filter_by(user_id=user_id)
+            if user_roles:
+                for user_role in user_roles:
+                    existing_role = user_role.role
+                    if not existing_role in roles:
+                        # delete row
+                        UserRole.query.filter_by(user_id=user_id, role=existing_role).delete()
+                    else:
+                        user_role = UserRole(user_id=user_id, role=role)
+                        db.session.add(user_role)
+                        db.session.commit()
+        return token, roles
     except Exception as e:
         logger.error('Error occurred while adding user to the database !')
         traceback.print_tb(e.__traceback__)
@@ -121,9 +148,9 @@ def cilogon_callback():
         logger.error('Authentication failed.')
         return render_template('login-failed.html')
     login_count = 0
-    token = add_user(email,full_name, institution, login_count)
+    token, roles = add_user(email,full_name, institution, login_count)
     logger.info(token)
-    return redirect('http://cadrerac-env-2.mdudyq5agh.us-east-2.elasticbeanstalk.com/?username=' + email + '&token=' + token)
+    return redirect(cadre_dashboard_url + email + '&token=' + token)
 
 
 @blueprint.route('/api/auth/google/login')
@@ -172,9 +199,9 @@ def google_callback():
     if name is None:
         name = email
     login_count = 0
-    token = add_user(email, name, 'google', login_count)
+    token, roles = add_user(email, name, 'google', login_count)
     logger.info(token)
-    return redirect('http://cadrerac-env-2.mdudyq5agh.us-east-2.elasticbeanstalk.com/?username=' + email + '&token=' + token)
+    return redirect(cadre_dashboard_url + email + '&token=' + token)
 
 
 @blueprint.route('/api/auth/facebook/login')
@@ -224,9 +251,9 @@ def facebook_callback():
     if name is None:
         name = email
     login_count = 0
-    token = add_user(email, name, 'google', login_count)
+    token, roles = add_user(email, name, 'google', login_count)
     logger.info(token)
-    return redirect('http://cadrerac-env-2.mdudyq5agh.us-east-2.elasticbeanstalk.com/?username=' + email + '&token=' + token)
+    return redirect(cadre_dashboard_url + email + '&token=' + token)
 
 
 @blueprint.route('/api/auth/microsoft/login')
@@ -275,9 +302,9 @@ def microsoft_callback():
     if name is None:
         name = email
     login_count = 0
-    token = add_user(email, name, 'microsoft', login_count)
+    token, roles = add_user(email, name, 'microsoft', login_count)
     logger.info(token)
-    return redirect('http://cadrerac-env-2.mdudyq5agh.us-east-2.elasticbeanstalk.com/?username=' + email + '&token=' + token)
+    return redirect(cadre_dashboard_url + email + '&token=' + token)
 
 
 @blueprint.route('/login-fail')

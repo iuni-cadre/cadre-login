@@ -418,3 +418,14 @@ def get_microsoft_userinfo_endpoint():
         traceback.print_tb(e.__traceback__)
         logger.error('Unable to find cadre.config file. Make sure you have cadre.config inside conf directory !')
         raise Exception('Unable to find cadre.config file !')
+
+
+def get_cadre_dashboard_uri():
+    try:
+        config = get_cadre_config()
+        dashboard_url = config['DEFAULT']['cadre_dashboard']
+        return cadre_dashboard
+    except Exception as e:
+        traceback.print_tb(e.__traceback__)
+        logger.error('Unable to find cadre.config file. Make sure you have cadre.config inside conf directory !')
+        raise Exception('Unable to find cadre.config file !')
