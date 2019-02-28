@@ -83,12 +83,10 @@ def add_user(email, full_name, institution, login_count):
                 user_roles = UserRole.query.filter_by(user_id=user_id)
                 for user_role in user_roles:
                     existing_role = user_role.role
-                    if not existing_role in roles:
+                    logger.info(existing_role)
+                    if existing_role not in roles:
                         # delete row
                         UserRole.query.filter_by(user_id=user_id, role=existing_role).delete()
-                    else:
-                        user_role = UserRole(user_id=user_id, role=role)
-                        db.session.add(user_role)
                         db.session.commit()
             else:
                 user_role = UserRole(user_id=user_id, role=role)
