@@ -38,7 +38,7 @@ def add_user(email, full_name, institution, login_count):
                 roles.append('wos')
         else:
             roles.append('guest')
-
+        logger.info(roles)
         user_login = UserLogin.query.filter_by(social_id=email).first()
         if not user_login:
             logger.info("New user")
@@ -89,6 +89,10 @@ def add_user(email, full_name, institution, login_count):
                         user_role = UserRole(user_id=user_id, role=role)
                         db.session.add(user_role)
                         db.session.commit()
+            else:
+                user_role = UserRole(user_id=user_id, role=role)
+                db.session.add(user_role)
+                db.session.commit()
         return token, roles
     except Exception as e:
         logger.error('Error occurred while adding user to the database !')
