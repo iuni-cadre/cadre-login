@@ -78,8 +78,9 @@ def add_user(email, full_name, institution, login_count):
             db.session.commit()
             user_id = user_info.user_id
         for role in roles:
-            user_roles = UserRole.query.filter_by(user_id=user_id)
-            if user_roles:
+            user_roles_count = UserRole.query.filter_by(user_id=user_id).count()
+            if user_roles_count > 0:
+                user_roles = UserRole.query.filter_by(user_id=user_id)
                 for user_role in user_roles:
                     existing_role = user_role.role
                     if not existing_role in roles:
