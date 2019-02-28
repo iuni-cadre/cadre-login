@@ -94,7 +94,7 @@ def add_user(email, full_name, institution, login_count):
                 user_role = UserRole(user_id=user_id, role=role)
                 db.session.add(user_role)
                 db.session.commit()
-        return token, roles
+        return token
     except Exception as e:
         logger.error('Error occurred while adding user to the database !')
         traceback.print_tb(e.__traceback__)
@@ -153,7 +153,7 @@ def cilogon_callback():
         logger.error('Authentication failed.')
         return render_template('login-failed.html')
     login_count = 0
-    token, roles = add_user(email,full_name, institution, login_count)
+    token = add_user(email,full_name, institution, login_count)
     logger.info(token)
     return redirect(cadre_dashboard_url + email + '&token=' + token)
 
@@ -204,7 +204,7 @@ def google_callback():
     if name is None:
         name = email
     login_count = 0
-    token, roles = add_user(email, name, 'google', login_count)
+    token = add_user(email, name, 'google', login_count)
     logger.info(token)
     return redirect(cadre_dashboard_url + email + '&token=' + token)
 
@@ -256,7 +256,7 @@ def facebook_callback():
     if name is None:
         name = email
     login_count = 0
-    token, roles = add_user(email, name, 'google', login_count)
+    token = add_user(email, name, 'google', login_count)
     logger.info(token)
     return redirect(cadre_dashboard_url + email + '&token=' + token)
 
@@ -307,7 +307,7 @@ def microsoft_callback():
     if name is None:
         name = email
     login_count = 0
-    token, roles = add_user(email, name, 'microsoft', login_count)
+    token = add_user(email, name, 'microsoft', login_count)
     logger.info(token)
     return redirect(cadre_dashboard_url + email + '&token=' + token)
 

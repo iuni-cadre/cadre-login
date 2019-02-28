@@ -83,9 +83,13 @@ def authenticate_token():
             else:
                 user = User.verify_auth_token(token)
                 if user is not None:
+                    roles = UserRole.get_roles(user.user_id)
                     logger.info('User token authenticated successfully !')
-                    success_message = "{'success': True}"
-                    resp = Response(response=success_message,
+                    success_message = {
+                        'success': True,
+                        'roles': roles
+                    }
+                    resp = Response(response=json.dumps(success_message),
                                     mimetype="application/json",
                                     status=200,
                                     headers={"x-cadre-auth-token": user.token,
