@@ -67,18 +67,21 @@ class User(db.Model):
 
     @staticmethod
     def verify_auth_token(token):
+        logger.info('******* verify token ******** ')
         secret_key = current_app.config['SECRET_KEY']
         s = Serializer(secret_key)
         try:
             data = s.loads(token)
+            user_id = data['id']
+            logger.info(user_id)
+            user = User.query.get(user_id)
+            return user
         except SignatureExpired:
             logger.info("Signature expired")
             return None  # valid token, but expired
         except BadSignature:
             logger.info("Bad Signature")
             return None  # invalid token
-        user = User.query.get(data['id'])
-        return user
 
     @staticmethod
     def get_user(token):

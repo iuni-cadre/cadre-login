@@ -62,13 +62,14 @@ def add_user(email, full_name, institution, login_count):
             user_info = User(login_id=login_id, username=email, email=email)
             user_info.created_on = datetime.now()
             user_info.created_by = login_id
+            db.session.add(user_info)
+            db.session.commit()
+            user_id = user_info.user_id
             token = user_info.generate_auth_token(600)
             token = str(token.decode('utf-8'))
             logger.info(token)
             user_info.token = token
-            db.session.add(user_info)
             db.session.commit()
-            user_id = user_info.user_id
         else:
             token = user_info.generate_auth_token(600)
             token = str(token.decode('utf-8'))

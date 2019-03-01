@@ -79,6 +79,7 @@ def authenticate_token():
         if User.query.filter_by(username=username).first() is not None:
             user = User.query.filter_by(username=username).first()
             saved_token = user.token
+            logger.info(saved_token)
             if token != saved_token:
                 logger.error('Invalid token provided !')
                 return jsonify({'Error': 'Invalid token'}), 401
