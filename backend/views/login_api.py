@@ -254,7 +254,7 @@ def facebook_callback():
     if name is None:
         name = email
     login_count = 0
-    token = add_user(email, name, 'google', login_count)
+    token = add_user(email, name, 'facebook', login_count)
     logger.info(token)
     return redirect(cadre_dashboard_url + email + '&token=' + token)
 
