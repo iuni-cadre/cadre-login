@@ -73,7 +73,9 @@ def authenticate_token():
     logger.info('Authenticate token !')
     try:
         token = request.headers.get('auth-token')
+        logger.info(token)
         username = escape(request.json.get('username'))
+        logger.info(username)
         if User.query.filter_by(username=username).first() is not None:
             user = User.query.filter_by(username=username).first()
             saved_token = user.token
@@ -84,6 +86,7 @@ def authenticate_token():
                 user = User.verify_auth_token(token)
                 if user is not None:
                     roles = UserRole.get_roles(user.user_id)
+                    logger.info(roles)
                     logger.info('User token authenticated successfully !')
                     success_message = {
                         'success': True,
@@ -107,7 +110,7 @@ def authenticate_token():
         return jsonify({'Error': 'Invalid user name'}), 401
     except Exception as e:
         traceback.print_tb(e.__traceback__)
-        logger.error('Error occurred while authenticate token !')
+        logger.error('Error occurred while authenticate token !. Error is ' + str(e))
         return jsonify({'error': str(e)}), 500
 
 
