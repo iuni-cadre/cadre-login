@@ -105,7 +105,7 @@ class UserRole(db.Model):
         all_roles_user_count = UserRole.query.filter_by(user_id=user_id).count()
         role_list = []
         if all_roles_user_count > 0:
-            all_roles = UserRole.filter_by(user_id=user_id)
+            all_roles = UserRole.query.filter_by(user_id=user_id)
             for user in all_roles:
                 role_list.append(user.role)
             return role_list
