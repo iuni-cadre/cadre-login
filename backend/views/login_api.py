@@ -21,7 +21,7 @@ from .data_model import User, UserLogin, UserRole
 
 import util.config_reader
 from backend import auth, db
-from util.login_util import btaa_members, paying_members
+from util.login_util import btaa_members, paying_members, paying_members_with_limited_access
 
 cadre_dashboard_url = util.config_reader.get_cadre_dashboard_uri()
 
@@ -34,6 +34,8 @@ def add_user(email, full_name, institution, login_count):
         if institution in btaa_members:
             if institution in paying_members:
                 roles.append('wos_gold')
+            elif institution in paying_members_with_limited_access:
+                roles.append('wos_limited')
             else:
                 roles.append('wos')
         else:
