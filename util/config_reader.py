@@ -429,3 +429,14 @@ def get_cadre_dashboard_uri():
         traceback.print_tb(e.__traceback__)
         logger.error('Unable to find cadre.config file. Make sure you have cadre.config inside conf directory !')
         raise Exception('Unable to find cadre.config file !')
+
+
+def get_jupyterhub_api():
+    try:
+        config = get_cadre_config()
+        jupyterhub_api = config['JUPYTERHUB']['jupyterhub-apihost']
+        return jupyterhub_api
+    except Exception as e:
+        traceback.print_tb(e.__traceback__)
+        logger.error('Unable to find cadre.config file. Make sure you have cadre.config inside conf directory !')
+        raise Exception('Unable to find cadre.config file !')

@@ -6,6 +6,8 @@ import requests
 from flask import jsonify, render_template, request, Blueprint, redirect
 import sys, os
 import logging.config
+import random
+import string
 
 from flask_pyoidc.user_session import UserSession
 
@@ -17,13 +19,19 @@ sys.path.append(parent)
 blueprint = Blueprint('login_api', __name__)
 logger = logging.getLogger('login_api')
 
-from .data_model import User, UserLogin, UserRole
+from .data_model import User, UserLogin, UserRole, JupyterUser
 
 import util.config_reader
 from backend import auth, db
 from util.login_util import btaa_members, paying_members, paying_members_with_limited_access
 
 cadre_dashboard_url = util.config_reader.get_cadre_dashboard_uri()
+
+
+def generate_random_pwd(string_length=10):
+    """Generate a random string of fixed length """
+    letters = string.ascii_lowercase
+    return ''.join(random.choice(letters) for i in range(string_length))
 
 
 def add_user(email, full_name, institution, login_count):
@@ -95,7 +103,33 @@ def add_user(email, full_name, institution, login_count):
                 user_role = UserRole(user_id=user_id, role=role)
                 db.session.add(user_role)
                 db.session.commit()
+        # add jupyterhub user info
+        add_jupyter_user(user_id, email)
         return token
+    except Exception as e:
+        logger.error('Error occurred while adding user to the database !')
+        traceback.print_tb(e.__traceback__)
+
+
+def add_jupyter_user(user_id, username):
+    logger.info('Creating jupyterhub user and token')
+    try:
+        jupyterUser = JupyterUser(user_id=user_id)
+        jupyterUser.j_username = username
+        pwd = generate_random_pwd(10)
+        jupyterUser.j_pwd = pwd
+
+        token_args = {
+            "username": username,
+            "password": pwd
+        }
+        response = requests.post(util.config_reader.get_jupyterhub_api(), data=token_args)
+        access_token_json = response.json()
+        token = access_token_json['token']
+
+        jupyterUser.j_token = token
+        db.session.add(jupyterUser)
+        db.session.commit()
     except Exception as e:
         logger.error('Error occurred while adding user to the database !')
         traceback.print_tb(e.__traceback__)

@@ -32,9 +32,9 @@ def create_tables():
 class UserLogin(db.Model):
     __tablename__ = 'user_login'
     id = db.Column(db.Integer, primary_key=True)
-    social_id = db.Column(db.String(64), nullable=False, unique=True)
+    social_id = db.Column(db.String(128), nullable=False, unique=True)
     name = db.Column(db.String(128), nullable=False)
-    email = db.Column(db.String(64), nullable=True)
+    email = db.Column(db.String(128), nullable=True)
     institution = db.Column(db.String(128), nullable=True)
     login_count = db.Column(db.Integer, default=0)
 
@@ -43,13 +43,13 @@ class User(db.Model):
     __tablename__ = 'users'
     user_id = db.Column(db.Integer, primary_key=True)
     login_id = db.Column(db.Integer, ForeignKey(UserLogin.id))
-    username = db.Column(db.String(32), index=True)
+    username = db.Column(db.String(128), index=True)
     password_hash = db.Column(db.String(255))
     email = db.Column(db.String(255))
     created_on = db.Column(db.DateTime)
     modified_on = db.Column(db.DateTime)
-    created_by = db.Column(db.String(32))
-    modified_by = db.Column(db.String(32), default=datetime.now())
+    created_by = db.Column(db.String(128))
+    modified_by = db.Column(db.String(128), default=datetime.now())
     token = db.Column(db.String(256))
 
     def hash_password(self, password):
@@ -126,3 +126,17 @@ class UserTeam(db.Model):
             for team_user in all_teams_user:
                 team_list.append(team_user.team)
             return team_list
+
+
+class JupyterUser(db.Model):
+    __tablename__ = 'jupyter_user'
+    user_id = db.Column(db.Integer, ForeignKey(User.user_id), primary_key=True)
+    j_username = db.Column(db.String(255), primary_key=True)
+    j_pwd = db.Column(db.String(255))
+    j_token = db.Column(db.String(255))
+
+    def get_token(user_id,username):
+        jupyter_user = JupyterUser.query.filter_by(user_id=user_id,j_username=username)
+        if jupyter_user:
+            return jupyter_user.token
+        return None
