@@ -126,8 +126,13 @@ def add_jupyter_user(user_id, username):
             "username": username,
             "password": pwd
         }
+        headers = {
+            "Content-Type": "application/json"
+        }
         jupyterhub_token_ep = util.config_reader.get_jupyterhub_api() + 'authorizations/token'
-        response = requests.post(jupyterhub_token_ep, data=token_args)
+        response = requests.post(jupyterhub_token_ep, data=token_args, headers=headers)
+        status_code = response.status_code
+        logger.info(status_code)
         access_token_json = response.json()
         token = access_token_json['token']
 
