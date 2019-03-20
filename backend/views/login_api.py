@@ -114,16 +114,20 @@ def add_user(email, full_name, institution, login_count):
 def add_jupyter_user(user_id, username):
     logger.info('Creating jupyterhub user and token')
     try:
+        logger.info(user_id)
+        logger.info(username)
         jupyterUser = JupyterUser(user_id=user_id)
         jupyterUser.j_username = username
         pwd = generate_random_pwd(10)
+        logger.info(pwd)
         jupyterUser.j_pwd = pwd
 
         token_args = {
             "username": username,
             "password": pwd
         }
-        response = requests.post(util.config_reader.get_jupyterhub_api(), data=token_args)
+        jupyterhub_token_ep = util.config_reader.get_jupyterhub_api() + 'authorizations/token'
+        response = requests.post(jupyterhub_token_ep, data=token_args)
         access_token_json = response.json()
         token = access_token_json['token']
 
