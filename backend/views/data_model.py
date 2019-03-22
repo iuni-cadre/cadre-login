@@ -65,6 +65,12 @@ class User(db.Model):
         dumps = s.dumps({'id': self.user_id})
         return dumps
 
+    def get_token(user_id,username):
+        user = User.query.filter_by(user_id=user_id,j_username=username)
+        if user:
+            return user.token
+        return None
+
     @staticmethod
     def verify_auth_token(token):
         logger.info('******* verify token ******** ')
