@@ -66,7 +66,7 @@ class User(db.Model):
         return dumps
 
     def get_token(user_id,username):
-        user = User.query.filter_by(user_id=user_id,j_username=username)
+        user = User.query.filter_by(user_id=user_id,username=username)
         if user:
             return user.token
         return None
