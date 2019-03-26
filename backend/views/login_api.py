@@ -107,7 +107,7 @@ def add_user(email, full_name, institution, login_count):
         add_jupyter_user(user_id, email)
         return user_id
     except Exception as e:
-        logger.error('Error occurred while adding user to the database !')
+        logger.error('Error occurred while adding user to the database. Error is : ' + str(e))
         traceback.print_tb(e.__traceback__)
 
 
@@ -116,34 +116,44 @@ def add_jupyter_user(user_id, username):
     try:
         logger.info(user_id)
         logger.info(username)
-        jupyterUser = JupyterUser(user_id=user_id)
-        jupyterUser.j_username = username
+        jupyterUser = JupyterUser.query.filter_by(user_id=user_id).first()
         pwd = generate_random_pwd(10)
-        logger.info(pwd)
-        jupyterUser.j_pwd = pwd
-
-        token_args = {
-            "username": username,
-            "password": pwd
-        }
-        headers = {
-            "Content-Type": "application/json"
-        }
-        jupyterhub_token_ep = util.config_reader.get_jupyterhub_api() + 'authorizations/token'
-        response = requests.post(jupyterhub_token_ep, json=token_args, headers=headers)
-        # response = requests.get(util.config_reader.get_jupyterhub_api())
-        status_code = response.status_code
-        logger.info(status_code)
-        access_token_json = response.json()
-        token = access_token_json['token']
-        logger.info(token)
-
-        jupyterUser.j_token = token
-        db.session.add(jupyterUser)
-        db.session.commit()
+        if not jupyterUser:
+            jupyterUser = JupyterUser(user_id=user_id)
+            jupyterUser.j_username = username
+            logger.info(pwd)
+            jupyterUser.j_pwd = pwd
+            token = generate_j_token(pwd, username)
+            jupyterUser.j_token = token
+            db.session.add(jupyterUser)
+            db.session.commit()
+        else:
+            pwd = jupyterUser.j_pwd
+            token = generate_j_token(pwd, username)
+            logger.info(token)
+            jupyterUser.j_token = token
+            db.session.commit()
     except Exception as e:
-        logger.error('Error occurred while adding user to the database !')
+        logger.error('Error occurred while adding user to the database !. Error is ' + str(e))
         traceback.print_tb(e.__traceback__)
+
+
+def generate_j_token(pwd, username):
+    token_args = {
+        "username": username,
+        "password": pwd
+    }
+    headers = {
+        "Content-Type": "application/json"
+    }
+    jupyterhub_token_ep = util.config_reader.get_jupyterhub_api() + 'authorizations/token'
+    response = requests.post(jupyterhub_token_ep, json=token_args, headers=headers)
+    # response = requests.get(util.config_reader.get_jupyterhub_api())
+    status_code = response.status_code
+    logger.info(status_code)
+    access_token_json = response.json()
+    token = access_token_json['token']
+    return token
 
 
 @blueprint.route('/api/auth/cilogon/login')
