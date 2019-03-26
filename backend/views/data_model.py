@@ -144,5 +144,5 @@ class JupyterUser(db.Model):
     def get_token(user_id,username):
         jupyter_user = JupyterUser.query.filter_by(user_id=user_id,j_username=username).first()
         if jupyter_user:
-            return jupyter_user.token
+            return jupyter_user.j_token
         return None
