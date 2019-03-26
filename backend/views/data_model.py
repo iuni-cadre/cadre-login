@@ -66,7 +66,7 @@ class User(db.Model):
         return dumps
 
     def get_token(user_id,username):
-        user = User.query.filter_by(user_id=user_id,username=username)
+        user = User.query.filter_by(user_id=user_id,username=username).first()
         if user:
             return user.token
         return None
@@ -142,7 +142,7 @@ class JupyterUser(db.Model):
     j_token = db.Column(db.String(255))
 
     def get_token(user_id,username):
-        jupyter_user = JupyterUser.query.filter_by(user_id=user_id,j_username=username)
+        jupyter_user = JupyterUser.query.filter_by(user_id=user_id,j_username=username).first()
         if jupyter_user:
             return jupyter_user.token
         return None

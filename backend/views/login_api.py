@@ -210,6 +210,7 @@ def cilogon_callback():
         return render_template('login-failed.html')
     login_count = 0
     user_id = add_user(email,full_name, institution, login_count)
+    logger.info(user_id)
     cadre_token = User.get_token(user_id, email)
     cadre_token = str(cadre_token.decode('utf-8'))
     jupyter_token = JupyterUser.get_token(user_id, email)
