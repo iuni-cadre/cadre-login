@@ -90,7 +90,7 @@ def authenticate_token():
                     logger.info(roles)
                     logger.info('User token authenticated successfully !')
                     success_message = {
-                        'success': True,
+                        'user_id': user.user_id,
                         'roles': roles
                     }
                     resp = Response(response=json.dumps(success_message),

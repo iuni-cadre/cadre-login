@@ -146,3 +146,14 @@ class JupyterUser(db.Model):
         if jupyter_user:
             return jupyter_user.j_token
         return None
+
+
+class UserJob(db.Model):
+    __tablename__ = 'user_job'
+    j_id = db.Column(db.String(255), primary_key=True)
+    user_id = db.Column(db.Integer, ForeignKey(User.user_id))
+    sns_message_id = db.Column(db.String(255))
+    s3_location = db.Column(db.String(255))
+    job_status = db.Column(db.String(255))
+    created_on = db.Column(db.DateTime)
+    last_updated = db.Column(db.DateTime)
