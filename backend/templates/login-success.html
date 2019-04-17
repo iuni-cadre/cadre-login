@@ -1,7 +1,7 @@
 {% extends "layout/default.html" %} {% block title %}Login Success{% endblock %} {% block content %}
 
-<div class="notification is-success">You have been logged in</div>
+<div class="alert alert-success">You have been logged in</div>
 
-<div class="notification is-success">Your name is {{ full_name }} and you are from {{ institution }}. Your Auth token is {{token}} and valid for 600ms.</div>
+<div class="alert alert-success">Your name is {{ full_name }} and you are from {{ institution }}. Your Auth token is {{token}} and valid for 600ms.</div>
 
 {% endblock %}
