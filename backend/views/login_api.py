@@ -266,7 +266,6 @@ def google_callback():
     login_count = 0
     user_id = add_user(email, name, 'google', login_count)
     cadre_token = User.get_token(user_id, email)
-    cadre_token = str(cadre_token.decode('utf-8'))
     jupyter_token = JupyterUser.get_token(user_id, email)
     jupyter_token = str(jupyter_token.decode('utf-8'))
     logger.info(cadre_token)
@@ -323,7 +322,6 @@ def facebook_callback():
     login_count = 0
     user_id = add_user(email, name, 'facebook', login_count)
     cadre_token = User.get_token(user_id, email)
-    cadre_token = str(cadre_token.decode('utf-8'))
     jupyter_token = JupyterUser.get_token(user_id, email)
     jupyter_token = str(jupyter_token.decode('utf-8'))
     logger.info(cadre_token)
