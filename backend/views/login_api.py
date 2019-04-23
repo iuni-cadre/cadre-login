@@ -52,7 +52,7 @@ def add_user(email, full_name, institution, login_count):
         names = email.split('@')
         username = names[0]
         logger.info(username)
-        user_login = UserLogin.query.filter_by(social_id=email).first()
+        user_login = UserLogin.query.filter_by(social_id=username).first()
         if not user_login:
             logger.info("New user")
             login_count += 1
