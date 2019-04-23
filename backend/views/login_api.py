@@ -107,7 +107,7 @@ def add_user(email, full_name, institution, login_count):
                 db.session.add(user_role)
                 db.session.commit()
         # add jupyterhub user info
-        add_jupyter_user(user_id, email)
+        add_jupyter_user(user_id, username)
         return user_id
     except Exception as e:
         logger.error('Error occurred while adding user to the database. Error is : ' + str(e))
@@ -156,6 +156,7 @@ def generate_j_token(pwd, username):
     logger.info(status_code)
     access_token_json = response.json()
     token = access_token_json['token']
+    logger.info(token)
     return token
 
 
