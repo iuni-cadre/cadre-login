@@ -81,6 +81,9 @@ class User(db.Model):
             user_id = data['id']
             logger.info(user_id)
             user = User.query.get(user_id)
+            new_token = user.generate_auth_token()
+            user.token = new_token
+            db.session.commit()
             return user
         except SignatureExpired:
             logger.info("Signature expired")

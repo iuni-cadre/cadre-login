@@ -49,11 +49,14 @@ def add_user(email, full_name, institution, login_count):
         else:
             roles.append('guest')
         logger.info(roles)
+        names = email.split('@')
+        username = names[0]
+        logger.info(username)
         user_login = UserLogin.query.filter_by(social_id=email).first()
         if not user_login:
             logger.info("New user")
             login_count += 1
-            user_login = UserLogin(social_id=email, name=full_name, email=email, institution=institution,
+            user_login = UserLogin(social_id=username, name=full_name, email=email, institution=institution,
                                    login_count=login_count)
             db.session.add(user_login)
             db.session.commit()
@@ -69,7 +72,7 @@ def add_user(email, full_name, institution, login_count):
             logger.info(login_count)
         user_info = User.query.filter_by(login_id=login_id).first()
         if not user_info:
-            user_info = User(login_id=login_id, username=email, email=email)
+            user_info = User(login_id=login_id, username=username, email=email)
             user_info.created_on = datetime.now()
             user_info.created_by = login_id
             db.session.add(user_info)
@@ -209,13 +212,15 @@ def cilogon_callback():
         logger.error('Authentication failed.')
         return render_template('login-failed.html')
     login_count = 0
-    user_id = add_user(email,full_name, institution, login_count)
+    user_id = add_user(email, full_name, institution, login_count)
     logger.info(user_id)
-    cadre_token = User.get_token(user_id, email)
-    jupyter_token = JupyterUser.get_token(user_id, email)
+    names = email.split('@')
+    username = names[0]
+    cadre_token = User.get_token(user_id, username)
+    jupyter_token = JupyterUser.get_token(user_id, username)
     logger.info(cadre_token)
     logger.info(jupyter_token)
-    return redirect(cadre_dashboard_url + email + '&cadre_token=' + cadre_token + '&jupyter_token=' + jupyter_token)
+    return redirect(cadre_dashboard_url + username + '&cadre_token=' + cadre_token + '&jupyter_token=' + jupyter_token)
 
 
 @blueprint.route('/api/auth/google/login')
@@ -265,11 +270,13 @@ def google_callback():
         name = email
     login_count = 0
     user_id = add_user(email, name, 'google', login_count)
-    cadre_token = User.get_token(user_id, email)
-    jupyter_token = JupyterUser.get_token(user_id, email)
+    names = email.split('@')
+    username = names[0]
+    cadre_token = User.get_token(user_id, username)
+    jupyter_token = JupyterUser.get_token(user_id, username)
     logger.info(cadre_token)
     logger.info(jupyter_token)
-    return redirect(cadre_dashboard_url + email + '&cadre_token=' + cadre_token + '&jupyter_token=' + jupyter_token)
+    return redirect(cadre_dashboard_url + username + '&cadre_token=' + cadre_token + '&jupyter_token=' + jupyter_token)
 
 
 @blueprint.route('/api/auth/facebook/login')
