@@ -9,7 +9,7 @@ btaa_members = [
     'University of Nebraska-Lincoln',
     'Northwestern University',
     'Ohio State University',
-    'Pennsylvania State University',
+    'Penn State',
     'Purdue University Main Campus',
     'Rutgers University-New Brunswick',
     'University of Wisconsin-Madison'
@@ -22,7 +22,7 @@ paying_members = [
     'Michigan State University',
     'University of Minnesota',
     'Ohio State University',
-    'Pennsylvania State University',
+    'Penn State',
     'Purdue University Main Campus',
     'Rutgers, The State University of New Jersey'
 ]
