@@ -30,10 +30,11 @@ paying_members = [
     'Purdue University Main Campus',
     'University of Illinois',
     'University of Nebraska-Lincoln',
-    'University of Wisconsin-Madison',
-    'Rutgers, The State University of New Jersey'
+    'University of Wisconsin-Madison'
+
 ]
 
 paying_members_with_limited_access = [
-    'University of Maryland College Park'
+    'University of Maryland College Park',
+    'Rutgers, The State University of New Jersey'
 ]
