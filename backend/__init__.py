@@ -124,13 +124,13 @@ auth.init_app(app)
 
 app.config['SECRET_KEY'] = util.config_reader.get_app_secret()
 url = util.config_reader.get_cadre_db_hostname() + ':' + util.config_reader.get_cadre_db_port()
-# DB_URL = 'postgres://{user}:{pw}@{url}/{db}'.format(user=util.config_reader.get_cadre_db_username(),
-#                                                     pw=util.config_reader.get_cadre_db_pwd(),
-#                                                     url=url,
-#                                                     db=util.config_reader.get_cadre_db_name())
-# app.config['SQLALCHEMY_DATABASE_URI'] = DB_URL
-# app.config['SQLALCHEMY_COMMIT_ON_TEARDOWN'] = True
-# app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+DB_URL = 'postgres://{user}:{pw}@{url}/{db}'.format(user=util.config_reader.get_cadre_db_username(),
+                                                    pw=util.config_reader.get_cadre_db_pwd(),
+                                                    url=url,
+                                                    db=util.config_reader.get_cadre_db_name())
+app.config['SQLALCHEMY_DATABASE_URI'] = DB_URL
+app.config['SQLALCHEMY_COMMIT_ON_TEARDOWN'] = True
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
 from .views import login_api, user_api, data_model
