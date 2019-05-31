@@ -1,3 +1,4 @@
+import json
 from datetime import datetime
 import traceback
 
@@ -200,14 +201,73 @@ def login_success():
     return render_template('login-success.html')
 
 
-
 @blueprint.route('/api/cognito/callback')
 def cognito_callback():
-    logger.info("*****API CALLBACK****")
     code = request.args.get('code')
-    data = request.data
     logger.info(code)
-    logger.info(data)
+    redirect_url = util.config_reader.get_cognito_redirect_uri()
+    logger.info(redirect_url)
+
+    token_args = {
+        "code": code,
+        "grant_type": "authorization_code",
+        "redirect_uri": util.config_reader.get_cognito_redirect_uri(),
+        "client_id": util.config_reader.get_cognito_client_id()
+    }
+    headers = {
+        "Content-Type": "application/x-www-form-urlencoded"
+    }
+    logger.info(json.dumps(headers))
+    response = requests.post(util.config_reader.get_cognito_token_endpoint(),
+                             data=token_args,
+                             headers=headers)
+    status_code = response.status_code
+    logger.info(status_code)
+    if status_code == 200:
+        access_token_json = response.json()
+        access_token = access_token_json['access_token']
+        user_info_header = {
+            'Authorization': 'Bearer ' + access_token
+        }
+
+        user_info_response = requests.get(util.config_reader.get_cognito_userinfo_endpoint(), headers=user_info_header)
+        user_info_response_code = user_info_response.status_code
+        if user_info_response_code == 200:
+            user_info_response_json = user_info_response.json()
+            logger.info(user_info_response_json)
+
+            username = user_info_response_json['username']
+            username = username.upper()
+            if 'CILOGON' in username:
+                institution = user_info_response_json['custom:idp_name']
+            elif 'GOOGLE' in username:
+                institution = 'google'
+            else:
+                institution = 'guest'
+            email = user_info_response_json['email']
+            given_name = user_info_response_json['given_name']
+            family_name = user_info_response_json['family_name']
+            full_name = given_name + " " + family_name
+
+            if email is None:
+                logger.error('Authentication failed.')
+                return render_template('login-failed.html')
+            login_count = 0
+            user_id = add_user(email, full_name, institution, login_count)
+            logger.info(user_id)
+            names = email.split('@')
+            username = names[0]
+            cadre_token = User.get_token(user_id, username)
+            jupyter_token = JupyterUser.get_token(user_id, username)
+            logger.info(cadre_token)
+
+            return redirect(cadre_dashboard_url + username + '&cadre_token=' + access_token + '&jupyter_token=' + jupyter_token)
+        else:
+            logger.error('Authentication failed.')
+            return render_template('login-failed.html')
+    else:
+        logger.error('Authentication failed.')
+        return render_template('login-failed.html')
 
 
 @blueprint.route('/api/auth/callback/')

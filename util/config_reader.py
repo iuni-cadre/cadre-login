@@ -445,7 +445,7 @@ def get_jupyterhub_api():
 def get_aws_access_key():
     try:
         config = get_cadre_config()
-        access_key = config['AWS']['aws_access_key_id']
+        access_key = config['AWS']['aws-access-key-id']
         return access_key
     except Exception as e:
         traceback.print_tb(e.__traceback__)
@@ -456,7 +456,7 @@ def get_aws_access_key():
 def get_aws_access_key_secret():
     try:
         config = get_cadre_config()
-        access_key_secret = config['AWS']['aws_secret_access_key']
+        access_key_secret = config['AWS']['aws-secret-access-key']
         return access_key_secret
     except Exception as e:
         traceback.print_tb(e.__traceback__)
@@ -467,8 +467,52 @@ def get_aws_access_key_secret():
 def get_aws_region():
     try:
         config = get_cadre_config()
-        region_name = config['AWS']['region_name']
+        region_name = config['AWS']['region-name']
         return region_name
+    except Exception as e:
+        traceback.print_tb(e.__traceback__)
+        logger.error('Unable to find cadre.config file. Make sure you have cadre.config inside conf directory !')
+        raise Exception('Unable to find cadre.config file !')
+
+
+def get_cognito_redirect_uri():
+    try:
+        config = get_cadre_config()
+        redirect_uri = config['AWS']['redirect-uri']
+        return redirect_uri
+    except Exception as e:
+        traceback.print_tb(e.__traceback__)
+        logger.error('Unable to find cadre.config file. Make sure you have cadre.config inside conf directory !')
+        raise Exception('Unable to find cadre.config file !')
+
+
+def get_cognito_token_endpoint():
+    try:
+        config = get_cadre_config()
+        token_ep = config['AWS']['token-endpoint']
+        return token_ep
+    except Exception as e:
+        traceback.print_tb(e.__traceback__)
+        logger.error('Unable to find cadre.config file. Make sure you have cadre.config inside conf directory !')
+        raise Exception('Unable to find cadre.config file !')
+
+
+def get_cognito_userinfo_endpoint():
+    try:
+        config = get_cadre_config()
+        userinfo_ep = config['AWS']['userinfo-endpoint']
+        return userinfo_ep
+    except Exception as e:
+        traceback.print_tb(e.__traceback__)
+        logger.error('Unable to find cadre.config file. Make sure you have cadre.config inside conf directory !')
+        raise Exception('Unable to find cadre.config file !')
+
+
+def get_cognito_client_id():
+    try:
+        config = get_cadre_config()
+        client_id = config['AWS']['client-id']
+        return client_id
     except Exception as e:
         traceback.print_tb(e.__traceback__)
         logger.error('Unable to find cadre.config file. Make sure you have cadre.config inside conf directory !')
