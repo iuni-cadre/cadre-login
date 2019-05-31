@@ -8,6 +8,7 @@ import sys, os
 import logging.config
 import random
 import string
+import boto3
 
 from flask_pyoidc.user_session import UserSession
 
@@ -108,6 +109,7 @@ def add_user(email, full_name, institution, login_count):
                 db.session.commit()
         # add jupyterhub user info
         add_jupyter_user(user_id, username)
+        # add_user_to_userpool(username)
         return user_id
     except Exception as e:
         logger.error('Error occurred while adding user to the database. Error is : ' + str(e))
@@ -136,6 +138,24 @@ def add_jupyter_user(user_id, username):
             logger.info(token)
             jupyterUser.j_token = token
             db.session.commit()
+    except Exception as e:
+        logger.error('Error occurred while adding user to the database !. Error is ' + str(e))
+        traceback.print_tb(e.__traceback__)
+
+
+def add_user_to_userpool(username):
+    logger.info('Adding user to cognito user pool')
+    try:
+        logger.info(username)
+        cognito_client = boto3.client('cognito-idp',
+                                  aws_access_key_id=util.config_reader.get_aws_access_key(),
+                                  aws_secret_access_key=util.config_reader.get_aws_access_key_secret(),
+                                  region_name=util.config_reader.get_aws_region())
+        response = cognito_client.admin_create_user(
+            UserPoolId='cadre',
+            Username=username
+        )
+
     except Exception as e:
         logger.error('Error occurred while adding user to the database !. Error is ' + str(e))
         traceback.print_tb(e.__traceback__)
@@ -178,6 +198,16 @@ def home():
 @blueprint.route('/login-success')
 def login_success():
     return render_template('login-success.html')
+
+
+
+@blueprint.route('/api/cognito/callback')
+def cognito_callback():
+    logger.info("*****API CALLBACK****")
+    code = request.args.get('code')
+    data = request.data
+    logger.info(code)
+    logger.info(data)
 
 
 @blueprint.route('/api/auth/callback/')
