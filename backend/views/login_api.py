@@ -21,7 +21,7 @@ sys.path.append(parent)
 blueprint = Blueprint('login_api', __name__)
 logger = logging.getLogger('login_api')
 
-from .data_model import User, UserLogin, UserRole, JupyterUser
+from .data_model import User, UserLogin, UserRole, JupyterUser, UserToken
 
 import util.config_reader
 from backend import auth, db
@@ -36,9 +36,8 @@ def generate_random_pwd(string_length=10):
     return ''.join(random.choice(letters) for i in range(string_length))
 
 
-def add_user(email, full_name, institution, login_count):
+def add_user(username, email, full_name, institution, login_count, aws_username):
     try:
-        logger.info(email)
         roles = []
         user_id = 0
         if institution in btaa_members:
@@ -50,15 +49,14 @@ def add_user(email, full_name, institution, login_count):
                 roles.append('wos')
         else:
             roles.append('guest')
-        logger.info(roles)
-        names = email.split('@')
-        username = names[0]
-        logger.info(username)
         user_login = UserLogin.query.filter_by(social_id=username).first()
         if not user_login:
             logger.info("New user")
             login_count += 1
-            user_login = UserLogin(social_id=username, name=full_name, email=email, institution=institution,
+            user_login = UserLogin(social_id=username,
+                                   name=full_name,
+                                   email=email,
+                                   institution=institution,
                                    login_count=login_count)
             db.session.add(user_login)
             db.session.commit()
@@ -77,19 +75,12 @@ def add_user(email, full_name, institution, login_count):
             user_info = User(login_id=login_id, username=username, email=email)
             user_info.created_on = datetime.now()
             user_info.created_by = login_id
+            user_info.aws_username = aws_username
             db.session.add(user_info)
             db.session.commit()
             user_id = user_info.user_id
-            token = user_info.generate_auth_token(600)
-            token = str(token.decode('utf-8'))
-            logger.info(token)
-            user_info.token = token
-            db.session.commit()
         else:
-            token = user_info.generate_auth_token(600)
-            token = str(token.decode('utf-8'))
-            logger.info(token)
-            user_info.token = token
+            user_info.aws_username = aws_username
             user_info.modified_on = datetime.now()
             db.session.commit()
             user_id = user_info.user_id
@@ -112,6 +103,42 @@ def add_user(email, full_name, institution, login_count):
         add_jupyter_user(user_id, username)
         # add_user_to_userpool(username)
         return user_id
+    except Exception as e:
+        logger.error('Error occurred while adding user to the database. Error is : ' + str(e))
+        traceback.print_tb(e.__traceback__)
+
+
+def add_tokens(user_id, access_token, id_token, refresh_token):
+    try:
+        token_count = UserToken.query.filter_by(user_id=user_id).count()
+        if token_count > 0:
+            existing_tokens = UserToken.query.filter_by(user_id=user_id)
+            for existing_token in existing_tokens:
+                if existing_token.type is 'access':
+                    existing_token.token = access_token
+                    existing_token.token_expiration_for_access_id_token()
+                elif existing_token.type is 'id':
+                    existing_token.token = id_token
+                    existing_token.token_expiration_for_access_id_token()
+                elif existing_token.type is 'refresh':
+                    existing_token.token = refresh_token
+                    existing_token.token_expiration_for_refresh_token()
+                db.session.commit()
+        else:
+            access_token_do = UserToken(user_id=user_id, type='access', token=access_token)
+            db.session.add(access_token_do)
+            db.session.commit()
+            access_token_do.token_expiration_for_access_id_token()
+
+            id_token_do = UserToken(user_id=user_id, type='id', token=id_token)
+            db.session.add(id_token_do)
+            db.session.commit()
+            id_token_do.token_expiration_for_access_id_token()
+
+            refresh_token_do = UserToken(user_id=user_id, type='refresh', token=refresh_token)
+            db.session.add(refresh_token_do)
+            db.session.commit()
+            refresh_token_do.token_expiration_for_refresh_token()
     except Exception as e:
         logger.error('Error occurred while adding user to the database. Error is : ' + str(e))
         traceback.print_tb(e.__traceback__)
@@ -226,6 +253,9 @@ def cognito_callback():
     if status_code == 200:
         access_token_json = response.json()
         access_token = access_token_json['access_token']
+        id_token = access_token_json['id_token']
+        refresh_token = access_token_json['refresh_token']
+        expires_in = access_token_json['expires_in']
         user_info_header = {
             'Authorization': 'Bearer ' + access_token
         }
@@ -236,11 +266,11 @@ def cognito_callback():
             user_info_response_json = user_info_response.json()
             logger.info(user_info_response_json)
 
-            username = user_info_response_json['username']
-            username = username.upper()
-            if 'CILOGON' in username:
+            aws_username = user_info_response_json['username']
+            aws_username = aws_username.upper()
+            if 'CILOGON' in aws_username:
                 institution = user_info_response_json['custom:idp_name']
-            elif 'GOOGLE' in username:
+            elif 'GOOGLE' in aws_username:
                 institution = 'google'
             else:
                 institution = 'guest'
@@ -253,11 +283,18 @@ def cognito_callback():
                 logger.error('Authentication failed.')
                 return render_template('login-failed.html')
             login_count = 0
-            user_id = add_user(email, full_name, institution, login_count)
+
+            names = email.split('@')
+            username = names[0]
+            logger.info(username)
+
+            user_id = add_user(username, email, full_name, institution, login_count, aws_username)
+            add_tokens(user_id, access_token, id_token, refresh_token)
+            add_jupyter_user(user_id, username)
             logger.info(user_id)
             names = email.split('@')
             username = names[0]
-            cadre_token = User.get_token(user_id, username)
+            cadre_token = UserToken.get_access_token(user_id)
             jupyter_token = JupyterUser.get_token(user_id, username)
             logger.info(cadre_token)
 
@@ -268,212 +305,6 @@ def cognito_callback():
     else:
         logger.error('Authentication failed.')
         return render_template('login-failed.html')
-
-
-@blueprint.route('/api/auth/callback/')
-def cilogon_callback():
-    logger.info("API CALLBACK")
-    params = request.args.get('code')
-
-    token_args = {
-        "code": params,
-        "grant_type": "authorization_code",
-        "redirect_uri": util.config_reader.get_cilogon_redirect_uri(),
-        "client_id": util.config_reader.get_cilogon_client_id(),
-        "client_secret": util.config_reader.get_cilogon_client_secret()
-    }
-    response = requests.post(util.config_reader.get_cilogon_token_endpoint(), data=token_args)
-    access_token_json = response.json()
-    access_token = access_token_json['access_token']
-
-    user_info_args = {
-        "access_token": access_token
-    }
-
-    user_info_response = requests.post(util.config_reader.get_cilogon_userinfo_endpoint(), data=user_info_args)
-    user_info_response_json = user_info_response.json()
-
-    institution = user_info_response_json['idp_name']
-    email = user_info_response_json['email']
-    given_name = user_info_response_json['given_name']
-    family_name = user_info_response_json['family_name']
-    full_name = given_name + " " + family_name
-
-    if email is None:
-        logger.error('Authentication failed.')
-        return render_template('login-failed.html')
-    login_count = 0
-    user_id = add_user(email, full_name, institution, login_count)
-    logger.info(user_id)
-    names = email.split('@')
-    username = names[0]
-    cadre_token = User.get_token(user_id, username)
-    jupyter_token = JupyterUser.get_token(user_id, username)
-    logger.info(cadre_token)
-    logger.info(jupyter_token)
-    return redirect(cadre_dashboard_url + username + '&cadre_token=' + cadre_token + '&jupyter_token=' + jupyter_token)
-
-
-@blueprint.route('/api/auth/google/login')
-@auth.oidc_auth('google')
-def google_login():
-    logger.info('Google login')
-    user_session = UserSession(flask.session)
-    return jsonify(access_token=user_session.access_token,
-                   id_token=user_session.id_token,
-                   userinfo=user_session.userinfo)
-
-
-@blueprint.route('/api/auth/google/callback')
-def google_callback():
-    logger.info("API CALLBACK")
-    scope = request.args.get('scope')
-    state = request.args.get('state')
-    code = request.args.get('code')
-
-    token_args = {
-        "code": code,
-        "grant_type": "authorization_code",
-        "redirect_uri": util.config_reader.get_google_redirect_uri(),
-        "client_id": util.config_reader.get_google_client_id(),
-        "client_secret": util.config_reader.get_google_client_secret()
-    }
-    response = requests.post(util.config_reader.get_google_token_endpoint(), data=token_args)
-    access_token_json = response.json()
-    access_token = access_token_json['access_token']
-    id_token = access_token_json['id_token']
-    user_info_args = {
-        "access_token": access_token
-    }
-
-    user_info_response = requests.post(util.config_reader.get_google_userinfo_endpoint(), data=user_info_args)
-    user_info_response_json = user_info_response.json()
-
-    logger.info(user_info_response_json)
-    email = user_info_response_json['email']
-    logger.info(email)
-    name = user_info_response_json['name']
-    logger.info(name)
-    if email is None:
-        logger.error('Authentication failed.')
-        return render_template('login-failed.html')
-    if name is None:
-        name = email
-    login_count = 0
-    user_id = add_user(email, name, 'google', login_count)
-    names = email.split('@')
-    username = names[0]
-    cadre_token = User.get_token(user_id, username)
-    jupyter_token = JupyterUser.get_token(user_id, username)
-    logger.info(cadre_token)
-    logger.info(jupyter_token)
-    return redirect(cadre_dashboard_url + username + '&cadre_token=' + cadre_token + '&jupyter_token=' + jupyter_token)
-
-
-@blueprint.route('/api/auth/facebook/login')
-@auth.oidc_auth('facebook')
-def facebook_login():
-    logger.info('Facebook login')
-    user_session = UserSession(flask.session)
-    return jsonify(access_token=user_session.access_token,
-                   id_token=user_session.id_token,
-                   userinfo=user_session.userinfo)
-
-
-@blueprint.route('/api/auth/facebook/callback')
-def facebook_callback():
-    logger.info("API CALLBACK")
-    scope = request.args.get('scope')
-    state = request.args.get('state')
-    code = request.args.get('code')
-
-    token_args = {
-        "code": code,
-        "grant_type": "authorization_code",
-        "redirect_uri": util.config_reader.get_facebook_redirect_uri(),
-        "client_id": util.config_reader.get_facebook_client_id(),
-        "client_secret": util.config_reader.get_facebook_client_secret()
-    }
-    response = requests.post(util.config_reader.get_facebook_token_endpoint(), data=token_args)
-    access_token_json = response.json()
-    logger.info(access_token_json)
-    access_token = access_token_json['access_token']
-    user_info_args = {
-        "access_token": access_token,
-        "fields": 'email, name'
-    }
-
-    user_info_response = requests.post(util.config_reader.get_facebook_userinfo_endpoint(), data=user_info_args)
-    user_info_response_json = user_info_response.json()
-
-    logger.info(user_info_response_json)
-    email = user_info_response_json['email']
-    logger.info(email)
-    name = user_info_response_json['name']
-    logger.info(name)
-    if email is None:
-        logger.error('Authentication failed.')
-        return render_template('login-failed.html')
-    if name is None:
-        name = email
-    login_count = 0
-    user_id = add_user(email, name, 'facebook', login_count)
-    cadre_token = User.get_token(user_id, email)
-    jupyter_token = JupyterUser.get_token(user_id, email)
-    logger.info(cadre_token)
-    logger.info(jupyter_token)
-    return redirect(cadre_dashboard_url + email + '&cadre_token=' + cadre_token + '&jupyter_token=' + jupyter_token)
-
-
-@blueprint.route('/api/auth/microsoft/login')
-@auth.oidc_auth('microsoft')
-def microsoft_login():
-    logger.info('Microsoft login')
-    user_session = UserSession(flask.session)
-    return jsonify(access_token=user_session.access_token,
-                   id_token=user_session.id_token,
-                   userinfo=user_session.userinfo)
-
-
-@blueprint.route('/api/auth/microsoft/callback')
-def microsoft_callback():
-    logger.info("API CALLBACK")
-    scope = request.args.get('scope')
-    state = request.args.get('state')
-    code = request.args.get('code')
-
-    token_args = {
-        "code": code,
-        "grant_type": "authorization_code",
-        "redirect_uri": util.config_reader.get_microsoft_redirect_uri(),
-        "client_id": util.config_reader.get_microsoft_client_id(),
-        "client_secret": util.config_reader.get_microsoft_client_secret()
-    }
-    response = requests.post(util.config_reader.get_microsoft_token_endpoint(), data=token_args)
-    access_token_json = response.json()
-    logger.info(access_token_json)
-    access_token = access_token_json['access_token']
-    user_info_args = {
-        "access_token": access_token
-    }
-
-    user_info_response = requests.post(util.config_reader.get_facebook_userinfo_endpoint(), data=user_info_args)
-    user_info_response_json = user_info_response.json()
-
-    logger.info(user_info_response_json)
-    email = user_info_response_json['mail']
-    logger.info(email)
-    name = user_info_response_json['displayName']
-    logger.info(name)
-    if email is None:
-        logger.error('Authentication failed.')
-        return render_template('login-failed.html')
-    if name is None:
-        name = email
-    login_count = 0
-    token = add_user(email, name, 'microsoft', login_count)
-    logger.info(token)
-    return redirect(cadre_dashboard_url + email + '&token=' + token)
 
 
 @blueprint.route('/login-fail')
