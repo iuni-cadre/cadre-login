@@ -105,7 +105,7 @@ class UserToken(db.Model):
             access_token_count = UserToken.query.filter_by(token=token,type='access').count()
             logger.info(access_token_count)
             if access_token_count > 0:
-                access_token = UserToken.query.filter_by(token=token, type='access')
+                access_token = UserToken.query.filter_by(token=token, type='access').first()
                 access_token_expired = (access_token.token_expiration.timestamp() - datetime.now().timestamp()) <= 0
                 user_id = access_token.user_id
                 logger.info(user_id)
