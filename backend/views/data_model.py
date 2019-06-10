@@ -106,13 +106,13 @@ class UserToken(db.Model):
             logger.info(access_token_count)
             if access_token_count > 0:
                 access_token = UserToken.query.filter_by(token=token, type='access')
-                access_token_expired = (access_token.expires_in.timestamp() - datetime.now().timestamp()) <= 0
+                access_token_expired = (access_token.token_expiration.timestamp() - datetime.now().timestamp()) <= 0
                 user_id = access_token.user_id
                 logger.info(user_id)
                 refresh_token = access_token.get_refresh_token(user_id)
                 logger.info(refresh_token)
                 id_token = access_token.get_id_token(user_id)
-                refresh_token_expired = (refresh_token.expires_in.timestamp() - datetime.now().timestamp()) <= 0
+                refresh_token_expired = (refresh_token.token_expiration.timestamp() - datetime.now().timestamp()) <= 0
 
                 if access_token_expired and not refresh_token_expired:
                     # try to get new access token and id token
