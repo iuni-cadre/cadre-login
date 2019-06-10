@@ -294,11 +294,11 @@ def cognito_callback():
             logger.info(user_id)
             names = email.split('@')
             username = names[0]
-            cadre_token = UserToken.get_access_token(user_id)
+            cadre_token = UserToken.get_access_token(user_id).token
             jupyter_token = JupyterUser.get_token(user_id, username)
             logger.info(cadre_token)
 
-            return redirect(cadre_dashboard_url + username + '&cadre_token=' + access_token + '&jupyter_token=' + jupyter_token)
+            return redirect(cadre_dashboard_url + username + '&cadre_token=' + cadre_token + '&jupyter_token=' + jupyter_token)
         else:
             logger.error('Authentication failed.')
             return render_template('login-failed.html')
