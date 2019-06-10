@@ -78,7 +78,7 @@ def authenticate_token():
         logger.info(username)
         if User.query.filter_by(username=username).first() is not None:
             user = User.query.filter_by(username=username).first()
-            saved_token = UserToken.get_access_token(user.user_id)
+            saved_token = UserToken.get_access_token(user.user_id).token
             logger.info(saved_token)
             if token != saved_token:
                 logger.error('Invalid token provided !')
@@ -123,7 +123,7 @@ def renew_token():
         username = escape(request.json.get('username'))
         if User.query.filter_by(username=username).first() is not None:
             user = User.query.filter_by(username=username).first()
-            existing_token = UserToken.get_access_token(user.user_id)
+            existing_token = UserToken.get_access_token(user.user_id).token
             if existing_token is not None:
                 user = UserToken.verify_auth_token(token)
                 if user is not None:
