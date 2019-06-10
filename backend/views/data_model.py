@@ -92,6 +92,7 @@ class UserToken(db.Model):
         return None
 
     def get_refresh_token(user_id):
+        logger.info(user_id)
         user = UserToken.query.filter_by(user_id=user_id, type='refresh').first()
         if user:
             return user
@@ -109,9 +110,9 @@ class UserToken(db.Model):
                 access_token_expired = (access_token.token_expiration.timestamp() - datetime.now().timestamp()) <= 0
                 user_id = access_token.user_id
                 logger.info(user_id)
-                refresh_token = access_token.get_refresh_token(user_id)
-                logger.info(refresh_token)
-                id_token = access_token.get_id_token(user_id)
+                refresh_token = UserToken.get_refresh_token(user_id)
+                logger.info(refresh_token.token)
+                id_token = UserToken.get_id_token(user_id)
                 refresh_token_expired = (refresh_token.token_expiration.timestamp() - datetime.now().timestamp()) <= 0
 
                 if access_token_expired and not refresh_token_expired:
