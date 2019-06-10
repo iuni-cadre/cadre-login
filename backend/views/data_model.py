@@ -66,7 +66,7 @@ class UserToken(db.Model):
     __tablename__ = 'user_token'
     user_id = db.Column(db.Integer, ForeignKey(User.user_id), primary_key=True)
     type = db.Column(db.String(128), primary_key=True)
-    token = db.Column(db.String(255))
+    token = db.Column(db.Text)
     token_expiration = db.Column(db.DateTime)
 
     def token_expiration_for_access_id_token(self):

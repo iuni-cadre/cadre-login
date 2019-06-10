@@ -12,7 +12,7 @@ parent = os.path.dirname(abspath)
 util = parent + '/util'
 sys.path.append(parent)
 
-from .data_model import User, UserRole
+from .data_model import User, UserRole, UserToken
 from backend import db
 
 blueprint = Blueprint('user_api', __name__)
@@ -78,13 +78,13 @@ def authenticate_token():
         logger.info(username)
         if User.query.filter_by(username=username).first() is not None:
             user = User.query.filter_by(username=username).first()
-            saved_token = user.token
+            saved_token = UserToken.get_access_token(user.user_id)
             logger.info(saved_token)
             if token != saved_token:
                 logger.error('Invalid token provided !')
                 return jsonify({'Error': 'Invalid token'}), 401
             else:
-                user = User.verify_auth_token(token)
+                user = UserToken.verify_auth_token(token)
                 if user is not None:
                     roles = UserRole.get_roles(user.user_id)
                     logger.info(roles)
@@ -123,9 +123,9 @@ def renew_token():
         username = escape(request.json.get('username'))
         if User.query.filter_by(username=username).first() is not None:
             user = User.query.filter_by(username=username).first()
-            existing_token = user.token
+            existing_token = UserToken.get_access_token(user.user_id)
             if existing_token is not None:
-                user = User.verify_auth_token(token)
+                user = UserToken.verify_auth_token(token)
                 if user is not None:
                     token = user.token
                     logger.info('Authentication token renewed successfully !')
