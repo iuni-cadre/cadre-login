@@ -517,3 +517,14 @@ def get_cognito_client_id():
         traceback.print_tb(e.__traceback__)
         logger.error('Unable to find cadre.config file. Make sure you have cadre.config inside conf directory !')
         raise Exception('Unable to find cadre.config file !')
+
+
+def get_cognito_userpool_id():
+    try:
+        config = get_cadre_config()
+        user_pool_id = config['AWS']['user-pool-id']
+        return user_pool_id
+    except Exception as e:
+        traceback.print_tb(e.__traceback__)
+        logger.error('Unable to find cadre.config file. Make sure you have cadre.config inside conf directory !')
+        raise Exception('Unable to find cadre.config file !')

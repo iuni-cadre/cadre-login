@@ -101,6 +101,7 @@ def add_user(username, email, full_name, institution, login_count, aws_username)
                 db.session.commit()
         # add jupyterhub user info
         add_jupyter_user(user_id, username)
+        add_user_to_usergroup(aws_username, roles[0])
         # add_user_to_userpool(username)
         return user_id
     except Exception as e:
@@ -171,21 +172,28 @@ def add_jupyter_user(user_id, username):
         traceback.print_tb(e.__traceback__)
 
 
-def add_user_to_userpool(username):
-    logger.info('Adding user to cognito user pool')
+def add_user_to_usergroup(username, role):
+    logger.info('Adding user to cognito user group')
     try:
         logger.info(username)
         cognito_client = boto3.client('cognito-idp',
                                   aws_access_key_id=util.config_reader.get_aws_access_key(),
                                   aws_secret_access_key=util.config_reader.get_aws_access_key_secret(),
                                   region_name=util.config_reader.get_aws_region())
-        response = cognito_client.admin_create_user(
-            UserPoolId='cadre',
-            Username=username
-        )
-
+        if 'wos' in role:
+            response = cognito_client.admin_add_user_to_group(
+                UserPoolId=util.config_reader.get_cognito_userpool_id(),
+                Username=username,
+                GroupName='WOS'
+            )
+        else:
+            response = cognito_client.admin_add_user_to_group(
+                UserPoolId='cadre',
+                Username=username,
+                GroupName='MAG'
+            )
     except Exception as e:
-        logger.error('Error occurred while adding user to the database !. Error is ' + str(e))
+        logger.error('Error occurred while adding user to cognito user group !. Error is ' + str(e))
         traceback.print_tb(e.__traceback__)
 
 

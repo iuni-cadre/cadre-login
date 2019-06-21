@@ -134,6 +134,7 @@ class UserToken(db.Model):
                     logger.info(status_code)
                     if status_code == 200:
                         refresh_token_response = response.json()
+                        logger.info(refresh_token_response)
                         new_access_token = refresh_token_response['access_token']
                         new_id_token = refresh_token_response['id_token']
                         access_token.token = new_access_token
