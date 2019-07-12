@@ -186,6 +186,11 @@ def add_user_to_usergroup(username, role):
                 Username=username,
                 GroupName='WOS'
             )
+            response = cognito_client.admin_add_user_to_group(
+                UserPoolId=util.config_reader.get_cognito_userpool_id(),
+                Username=username,
+                GroupName='MAG'
+            )
         else:
             response = cognito_client.admin_add_user_to_group(
                 UserPoolId='cadre',
@@ -305,6 +310,7 @@ def cognito_callback():
             cadre_token = UserToken.get_access_token(user_id).token
             jupyter_token = JupyterUser.get_token(user_id, username)
             logger.info(cadre_token)
+            logger.info(username)
 
             return redirect(cadre_dashboard_url + username + '&cadre_token=' + cadre_token + '&jupyter_token=' + jupyter_token)
         else:
