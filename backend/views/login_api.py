@@ -115,31 +115,31 @@ def add_tokens(user_id, access_token, id_token, refresh_token):
         if token_count > 0:
             existing_tokens = UserToken.query.filter_by(user_id=user_id)
             for existing_token in existing_tokens:
-                if existing_token.type is 'access':
+                if existing_token.type == 'access':
                     existing_token.token = access_token
                     existing_token.token_expiration_for_access_id_token()
-                elif existing_token.type is 'id':
+                elif existing_token.type == 'id':
                     existing_token.token = id_token
                     existing_token.token_expiration_for_access_id_token()
-                elif existing_token.type is 'refresh':
+                elif existing_token.type == 'refresh':
                     existing_token.token = refresh_token
                     existing_token.token_expiration_for_refresh_token()
                 db.session.commit()
         else:
             access_token_do = UserToken(user_id=user_id, type='access', token=access_token)
+            access_token_do.token_expiration_for_access_id_token()
             db.session.add(access_token_do)
             db.session.commit()
-            access_token_do.token_expiration_for_access_id_token()
 
             id_token_do = UserToken(user_id=user_id, type='id', token=id_token)
+            id_token_do.token_expiration_for_access_id_token()
             db.session.add(id_token_do)
             db.session.commit()
-            id_token_do.token_expiration_for_access_id_token()
 
             refresh_token_do = UserToken(user_id=user_id, type='refresh', token=refresh_token)
+            refresh_token_do.token_expiration_for_refresh_token()
             db.session.add(refresh_token_do)
             db.session.commit()
-            refresh_token_do.token_expiration_for_refresh_token()
     except Exception as e:
         logger.error('Error occurred while adding user to the database. Error is : ' + str(e))
         traceback.print_tb(e.__traceback__)
