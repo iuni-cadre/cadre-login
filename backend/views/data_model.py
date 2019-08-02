@@ -36,7 +36,6 @@ class UserLogin(db.Model):
     name = db.Column(db.String(128), nullable=False)
     email = db.Column(db.String(128), nullable=True)
     institution = db.Column(db.String(128), nullable=True)
-    login_count = db.Column(db.Integer, default=0)
 
 
 class User(db.Model):
@@ -44,8 +43,8 @@ class User(db.Model):
     user_id = db.Column(db.Integer, primary_key=True)
     login_id = db.Column(db.Integer, ForeignKey(UserLogin.id))
     username = db.Column(db.String(128), index=True)
-    password_hash = db.Column(db.String(255))
-    email = db.Column(db.String(255))
+    password_hash = db.Column(db.String(256))
+    email = db.Column(db.String(256))
     created_on = db.Column(db.DateTime)
     modified_on = db.Column(db.DateTime)
     created_by = db.Column(db.String(128))
@@ -108,7 +107,7 @@ class User(db.Model):
 class UserRole(db.Model):
     __tablename__ = 'user_role'
     user_id = db.Column(db.Integer, ForeignKey(User.user_id), primary_key=True)
-    role = db.Column(db.String(255), primary_key=True)
+    role = db.Column(db.String(256), primary_key=True)
 
     def get_roles(user_id):
         all_roles_user_count = UserRole.query.filter_by(user_id=user_id).count()
@@ -123,23 +122,24 @@ class UserRole(db.Model):
 class UserTeam(db.Model):
     __tablename__ = 'user_team'
     user_id = db.Column(db.Integer, ForeignKey(User.user_id), primary_key=True)
-    team = db.Column(db.String(255), primary_key=True)
+    team_id = db.Column(db.Integer, primary_key=True)
+    team_name = db.Column(db.String(256))
 
     def get_teams(user_id):
         all_teams_user = UserTeam.query.filter_by(user_id=user_id)
         team_list = []
         if all_teams_user:
             for team_user in all_teams_user:
-                team_list.append(team_user.team)
+                team_list.append(team_user.team_id)
             return team_list
 
 
 class JupyterUser(db.Model):
     __tablename__ = 'jupyter_user'
     user_id = db.Column(db.Integer, ForeignKey(User.user_id), primary_key=True)
-    j_username = db.Column(db.String(255), primary_key=True)
-    j_pwd = db.Column(db.String(255))
-    j_token = db.Column(db.String(255))
+    jupyter_username = db.Column(db.String(256), primary_key=True)
+    jupyter_pwd = db.Column(db.String(256))
+    jupyter_token = db.Column(db.String(256))
 
     def get_token(user_id,username):
         jupyter_user = JupyterUser.query.filter_by(user_id=user_id, j_username=username).first()
@@ -150,10 +150,16 @@ class JupyterUser(db.Model):
 
 class UserJob(db.Model):
     __tablename__ = 'user_job'
-    j_id = db.Column(db.String(255), primary_key=True)
+    job_id = db.Column(db.String(256), primary_key=True)
     user_id = db.Column(db.Integer, ForeignKey(User.user_id))
-    sns_message_id = db.Column(db.String(255))
-    s3_location = db.Column(db.String(255))
-    job_status = db.Column(db.String(255))
-    created_on = db.Column(db.DateTime)
-    last_updated = db.Column(db.DateTime)
+    message_id = db.Column(db.String(256))
+    s3_location = db.Column(db.String(256))
+    efs_location = db.Column(db.String(256))
+    job_status = db.Column(db.String(256))
+    type = db.Column(db.String(256))
+    description = db.Column(db.String(256))
+    dataset = db.Column(db.String(256))
+    started_on = db.Column(db.DateTime)
+    modified_on = db.Column(db.DateTime)
+    started_by = db.Column(db.Integer)
+    modified_by = db.Column(db.Integer)

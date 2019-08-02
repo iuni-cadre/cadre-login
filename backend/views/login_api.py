@@ -123,11 +123,11 @@ def add_jupyter_user(user_id, username):
         pwd = generate_random_pwd(10)
         if not jupyterUser:
             jupyterUser = JupyterUser(user_id=user_id)
-            jupyterUser.j_username = username
+            jupyterUser.jupyter_username = username
             logger.info(pwd)
-            jupyterUser.j_pwd = pwd
+            jupyterUser.jupyter_pwd = pwd
             token = generate_j_token(pwd, username)
-            jupyterUser.j_token = token
+            jupyterUser.jupyter_token = token
             db.session.add(jupyterUser)
             db.session.commit()
         else:
