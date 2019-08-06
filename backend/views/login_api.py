@@ -156,7 +156,7 @@ def add_jupyter_user(user_id, username):
             db.session.add(jupyterUser)
             db.session.commit()
         else:
-            pwd = jupyterUser.j_pwd
+            pwd = jupyterUser.jupyter_pwd
             token = generate_j_token(pwd, username)
             logger.info(token)
             jupyterUser.j_token = token
