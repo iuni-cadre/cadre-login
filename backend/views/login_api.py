@@ -159,7 +159,7 @@ def add_jupyter_user(user_id, username):
             pwd = jupyterUser.jupyter_pwd
             token = generate_j_token(pwd, username)
             logger.info(token)
-            jupyterUser.j_token = token
+            jupyterUser.jupyter_token = token
             db.session.commit()
     except Exception as e:
         logger.error('Error occurred while adding user to the database !. Error is ' + str(e))
