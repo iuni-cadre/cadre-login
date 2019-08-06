@@ -51,8 +51,8 @@ class User(db.Model):
     aws_username = db.Column(db.String(256))
     created_on = db.Column(db.DateTime)
     modified_on = db.Column(db.DateTime)
-    created_by = db.Column(db.String(256))
-    modified_by = db.Column(db.String(256), default=datetime.now())
+    created_by = db.Column(db.Integer)
+    modified_by = db.Column(db.Integer)
 
     def hash_password(self, password):
         self.password_hash = pwd_context.encrypt(password)
