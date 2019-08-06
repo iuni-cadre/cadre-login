@@ -34,7 +34,7 @@ def generate_random_pwd(string_length=10):
     return ''.join(random.choice(letters) for i in range(string_length))
 
 
-def add_user(email, full_name, institution, login_count):
+def add_user(email, full_name, institution):
     try:
         logger.info(email)
         roles = []
@@ -55,21 +55,14 @@ def add_user(email, full_name, institution, login_count):
         user_login = UserLogin.query.filter_by(social_id=username).first()
         if not user_login:
             logger.info("New user")
-            login_count += 1
-            user_login = UserLogin(social_id=username, name=full_name, email=email, institution=institution,
-                                   login_count=login_count)
+            user_login = UserLogin(social_id=username, name=full_name, email=email, institution=institution)
             db.session.add(user_login)
             db.session.commit()
             login_id = user_login.id
-            logger.info(login_count)
         else:
             logger.info("Existing user")
-            login_count = user_login.login_count
-            login_count += 1
-            user_login.login_count = login_count
             db.session.commit()
             login_id = user_login.id
-            logger.info(login_count)
         user_info = User.query.filter_by(login_id=login_id).first()
         if not user_info:
             user_info = User(login_id=login_id, username=username, email=email)
@@ -212,8 +205,7 @@ def cilogon_callback():
     if email is None:
         logger.error('Authentication failed.')
         return render_template('login-failed.html')
-    login_count = 0
-    user_id = add_user(email, full_name, institution, login_count)
+    user_id = add_user(email, full_name, institution)
     logger.info(user_id)
     names = email.split('@')
     username = names[0]
@@ -269,8 +261,7 @@ def google_callback():
         return render_template('login-failed.html')
     if name is None:
         name = email
-    login_count = 0
-    user_id = add_user(email, name, 'google', login_count)
+    user_id = add_user(email, name, 'google')
     names = email.split('@')
     username = names[0]
     cadre_token = User.get_token(user_id, username)
@@ -326,8 +317,7 @@ def facebook_callback():
         return render_template('login-failed.html')
     if name is None:
         name = email
-    login_count = 0
-    user_id = add_user(email, name, 'facebook', login_count)
+    user_id = add_user(email, name, 'facebook')
     cadre_token = User.get_token(user_id, email)
     jupyter_token = JupyterUser.get_token(user_id, email)
     logger.info(cadre_token)
@@ -380,8 +370,7 @@ def microsoft_callback():
         return render_template('login-failed.html')
     if name is None:
         name = email
-    login_count = 0
-    token = add_user(email, name, 'microsoft', login_count)
+    token = add_user(email, name, 'microsoft')
     logger.info(token)
     return redirect(cadre_dashboard_url + email + '&token=' + token)
 
