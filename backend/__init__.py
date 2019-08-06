@@ -15,7 +15,7 @@ parent = os.path.dirname(abspath)
 util = parent + '/util'
 sys.path.append(parent)
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder="static")
 CORS(app)
 
 # If applicable, delete the existing log file to generate a fresh log file during each execution
