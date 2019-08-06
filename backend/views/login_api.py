@@ -36,7 +36,7 @@ def generate_random_pwd(string_length=10):
     return ''.join(random.choice(letters) for i in range(string_length))
 
 
-def add_user(username, email, full_name, institution, login_count, aws_username):
+def add_user(username, email, full_name, institution,  aws_username):
     try:
         logger.info(email)
         roles = []
@@ -53,24 +53,17 @@ def add_user(username, email, full_name, institution, login_count, aws_username)
         user_login = UserLogin.query.filter_by(social_id=username).first()
         if not user_login:
             logger.info("New user")
-            login_count += 1
             user_login = UserLogin(social_id=username,
                                    name=full_name,
                                    email=email,
-                                   institution=institution,
-                                   login_count=login_count)
+                                   institution=institution)
             db.session.add(user_login)
             db.session.commit()
             login_id = user_login.id
-            logger.info(login_count)
         else:
             logger.info("Existing user")
-            login_count = user_login.login_count
-            login_count += 1
-            user_login.login_count = login_count
             db.session.commit()
             login_id = user_login.id
-            logger.info(login_count)
         user_info = User.query.filter_by(login_id=login_id).first()
         if not user_info:
             user_info = User(login_id=login_id, username=username, email=email)
@@ -296,13 +289,12 @@ def cognito_callback():
             if email is None:
                 logger.error('Authentication failed.')
                 return render_template('login-failed.html')
-            login_count = 0
 
             names = email.split('@')
             username = names[0]
             logger.info(username)
 
-            user_id = add_user(username, email, full_name, institution, login_count, aws_username)
+            user_id = add_user(username, email, full_name, institution, aws_username)
             add_tokens(user_id, access_token, id_token, refresh_token)
             add_jupyter_user(user_id, username)
             logger.info(user_id)
