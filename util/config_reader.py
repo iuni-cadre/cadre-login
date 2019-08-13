@@ -485,6 +485,16 @@ def get_cognito_redirect_uri():
         logger.error('Unable to find cadre.config file. Make sure you have cadre.config inside conf directory !')
         raise Exception('Unable to find cadre.config file !')
 
+def get_cognito_logout_redirect_uri():
+    try:
+        config = get_cadre_config()
+        logout_redirect_uri = config['AWS']['logout-redirect-uri']
+        return logout_redirect_uri
+    except Exception as e:
+        traceback.print_tb(e.__traceback__)
+        logger.error('Unable to find cadre.config file. Make sure you have cadre.config inside conf directory !')
+        raise Exception('Unable to find cadre.config file !')
+
 
 def get_cognito_token_endpoint():
     try:

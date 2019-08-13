@@ -314,6 +314,85 @@ def cognito_callback():
         return render_template('login-failed.html')
 
 
+
+
+    @blueprint.route('/api/cognito/logout')
+    def cognito_callback():
+        logger.info(code)
+        redirect_url = util.config_reader.get_cognito_logout_redirect_uri()
+        logger.info(redirect_url)
+        return redirect(redirect_url)
+    
+        # token_args = {
+        #     "code": code,
+        #     "grant_type": "authorization_code",
+        #     "redirect_uri": util.config_reader.get_cognito_logout_uri(),
+        #     "client_id": util.config_reader.get_cognito_client_id()
+        # }
+        # headers = {
+        #     "Content-Type": "application/x-www-form-urlencoded"
+        # }
+        # logger.info(json.dumps(headers))
+        # response = requests.post(util.config_reader.get_cognito_token_endpoint(),
+        #                          data=token_args,
+        #                          headers=headers)
+        # status_code = response.status_code
+        # logger.info(status_code)
+        # if status_code == 200:
+        # access_token_json = response.json()
+        # access_token = access_token_json['access_token']
+        # id_token = access_token_json['id_token']
+        # refresh_token = access_token_json['refresh_token']
+        # expires_in = access_token_json['expires_in']
+        # user_info_header = {
+        #     'Authorization': 'Bearer ' + access_token
+        # }
+
+        # user_info_response = requests.get(util.config_reader.get_cognito_userinfo_endpoint(), headers=user_info_header)
+        # user_info_response_code = user_info_response.status_code
+        # if user_info_response_code == 200:
+        #     user_info_response_json = user_info_response.json()
+        #     logger.info(user_info_response_json)
+
+        #     aws_username = user_info_response_json['username']
+        #     aws_username = aws_username.upper()
+        #     if 'CILOGON' in aws_username:
+        #         institution = user_info_response_json['custom:idp_name']
+        #     elif 'GOOGLE' in aws_username:
+        #         institution = 'google'
+        #     else:
+        #         institution = 'guest'
+        #     email = user_info_response_json['email']
+        #     given_name = user_info_response_json['given_name']
+        #     family_name = user_info_response_json['family_name']
+        #     full_name = given_name + " " + family_name
+
+        #     if email is None:
+        #         logger.error('Authentication failed.')
+        #         return render_template('login-failed.html')
+
+        #     names = email.split('@')
+        #     username = names[0]
+        #     logger.info(username)
+
+        #     user_id = add_user(username, email, full_name, institution, aws_username)
+        #     add_tokens(user_id, access_token, id_token, refresh_token)
+        #     add_jupyter_user(user_id, username)
+        #     logger.info(user_id)
+        #     names = email.split('@')
+        #     username = names[0]
+        #     cadre_token = UserToken.get_access_token(user_id).token
+        #     jupyter_token = JupyterUser.get_token(user_id, username)
+        #     logger.info(cadre_token)
+        #     logger.info(username)
+
+        #     return redirect(cadre_dashboard_url + username + '&cadre_token=' + cadre_token + '&jupyter_token=' + jupyter_token)
+        # else:
+        #     logger.error('Authentication failed.')
+        #     return render_template('login-failed.html')
+
+
+
 @blueprint.route('/login-fail')
 def login_fail():
     return render_template('login-fail.html')
