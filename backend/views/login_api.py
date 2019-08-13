@@ -318,7 +318,7 @@ def cognito_callback():
 
 @blueprint.route('/api/cognito/logout')
 def cognito_callback_logout():
-    logger.info(code)
+    # logger.info(code)
     redirect_url = util.config_reader.get_cognito_logout_redirect_uri()
     logger.info(redirect_url)
     return redirect(redirect_url)
