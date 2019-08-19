@@ -47,7 +47,7 @@ def login_user():
         return jsonify({'error': str(e)}), 500
 
 
-@blueprint.route('/api/logout', methods=['GET'])
+@blueprint.route('/api/logout', methods=['POST'])
 def logout_user():
     logger.info('Logout User !')
     try:
