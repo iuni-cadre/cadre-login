@@ -78,6 +78,12 @@ class UserToken(db.Model):
         db.session.commit()
         return self.token_expiration
 
+    #force token to expire by setting expiration date to yesterday
+    def token_expiration_make_expired(self):
+        self.token_expiration = datetime.now() - timedelta(days=1)
+        db.session.commit()
+        return self.token_expiration
+
     def get_access_token(user_id):
         user = UserToken.query.filter_by(user_id=user_id, type='access').first()
         if user:
@@ -147,6 +153,23 @@ class UserToken(db.Model):
                     return None
                 else:
                     return access_token
+            else:
+                logger.info("could not find user info for given access token")
+        except Exception as e:
+            logger.info("Error is " + str(e))
+            return None
+
+    @staticmethod
+    def expire_token(token):
+        logger.info('******* expire token ******** ')
+        try:
+            logger.info(token)
+            access_token_count = UserToken.query.filter_by(token=token,type='access').count()
+            logger.info(access_token_count)
+            if access_token_count > 0:
+                access_token = UserToken.query.filter_by(token=token, type='access').first()
+                access_token.token_expiration_make_expired()
+                return access_token
             else:
                 logger.info("could not find user info for given access token")
         except Exception as e:

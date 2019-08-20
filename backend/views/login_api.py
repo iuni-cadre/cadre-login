@@ -324,7 +324,40 @@ def cognito_callback_logout():
     redirect_url = util.config_reader.get_cognito_logout_redirect_uri()
     logger.info(redirect_url)
     return redirect(redirect_url)
-    
+
+
+
+@blueprint.route('/api/logout', methods=['POST'])
+def logout_user():
+    logger.info('Log out !')
+    try:
+        token = request.headers.get('auth-token')
+        username = escape(request.json.get('username'))
+        UserToken.expire_token(token);
+
+        if User.query.filter_by(username=username).first() is not None:
+            user = User.query.filter_by(username=username).first()
+            existing_token = UserToken.get_access_token(user.user_id).token
+
+            if existing_token is not None:
+                existing_token_expired = (existing_token.token_expiration.timestamp() - datetime.now().timestamp()) <= 0
+                
+                if existing_token_expired:
+                    logger.info('Successfully logged out !')
+                    return jsonify({'message': "Logout successful.", username: username}), 200
+                else
+                    
+                    logger.info('Logout failed !')
+                    return jsonify({'Error': 'Logout failed.'}), 422 
+
+        logger.error('Invalid user name provided !')
+        return jsonify({'Error': 'Invalid user name provided'}), 401
+    except Exception as e:
+        traceback.print_tb(e.__traceback__)
+        logger.error('Error occurred while expiring the token !')
+        return jsonify({'error': str(e)}), 500
+
+
         # token_args = {
         #     "code": code,
         #     "grant_type": "authorization_code",

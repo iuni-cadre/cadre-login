@@ -47,25 +47,25 @@ def login_user():
         return jsonify({'error': str(e)}), 500
 
 
-@blueprint.route('/api/logout', methods=['POST'])
-def logout_user():
-    logger.info('Logout User !')
-    try:
-        username = escape(request.json.get('username'))
-        token = request.headers.get('auth-token')
-        if User.query.filter_by(username=username).first() is not None:
-            user = User.query.filter_by(username=username).first()
-            saved_token = user.token
-            if token == saved_token:
-                user.token = None
-                user.modified_on = datetime.now()
-                db.session.commit()
-                return jsonify({'username': username}), 200
-            return jsonify({'Logout': 'Failed'}), 500
-        return jsonify({'Logout': 'Failed, Invalid username'}), 401
-    except Exception as e:
-        logger.error('Error occurred while log out user !')
-        return jsonify({'error': str(e)}), 500
+# @blueprint.route('/api/logout', methods=['POST'])
+# def logout_user():
+#     logger.info('Logout User !')
+#     try:
+#         username = escape(request.json.get('username'))
+#         token = request.headers.get('auth-token')
+#         if User.query.filter_by(username=username).first() is not None:
+#             user = User.query.filter_by(username=username).first()
+#             saved_token = user.token
+#             if token == saved_token:
+#                 user.token = None
+#                 user.modified_on = datetime.now()
+#                 db.session.commit()
+#                 return jsonify({'username': username}), 200
+#             return jsonify({'Logout': 'Failed'}), 500
+#         return jsonify({'Logout': 'Failed, Invalid username'}), 401
+#     except Exception as e:
+#         logger.error('Error occurred while log out user !')
+#         return jsonify({'error': str(e)}), 500
 
 
 @blueprint.route('/api/authenticate-token', methods=['POST'])
