@@ -337,7 +337,7 @@ def logout_user():
 
         if User.query.filter_by(username=username).first() is not None:
             user = User.query.filter_by(username=username).first()
-            existing_token = UserToken.get_access_token(user.user_id).token
+            existing_token = UserToken.get_access_token(user.user_id)
 
             if existing_token is not None:
                 existing_token_expired = (existing_token.token_expiration.timestamp() - datetime.now().timestamp()) <= 0
