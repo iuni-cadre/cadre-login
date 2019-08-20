@@ -345,7 +345,7 @@ def logout_user():
                 if existing_token_expired:
                     logger.info('Successfully logged out !')
                     return jsonify({'message': "Logout successful.", username: username}), 200
-                else
+                else:
                     
                     logger.info('Logout failed !')
                     return jsonify({'Error': 'Logout failed.'}), 422 
