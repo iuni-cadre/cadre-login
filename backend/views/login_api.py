@@ -293,8 +293,9 @@ def cognito_callback():
 
             names = email.split('@')
             username = names[0]
-            username = base64.b64encode(bytes(username, 'utf-8'))
-            username = username.decode('ascii')
+            # UNCOMMENT AFTER PACKAGES DONE
+            # username = base64.b64encode(bytes(username, 'utf-8'))
+            # username = username.decode('ascii')
             logger.info(username)
 
             user_id = add_user(username, email, full_name, institution, aws_username)
