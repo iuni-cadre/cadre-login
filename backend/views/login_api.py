@@ -10,6 +10,7 @@ import logging.config
 import random
 import string
 import boto3
+import base64
 
 from flask_pyoidc.user_session import UserSession
 
@@ -292,14 +293,14 @@ def cognito_callback():
 
             names = email.split('@')
             username = names[0]
+            username = base64.b64encode(bytes(username, 'utf-8'))
+            username = username.decode('ascii')
             logger.info(username)
 
             user_id = add_user(username, email, full_name, institution, aws_username)
             add_tokens(user_id, access_token, id_token, refresh_token)
             add_jupyter_user(user_id, username)
             logger.info(user_id)
-            names = email.split('@')
-            username = names[0]
             cadre_token = UserToken.get_access_token(user_id).token
             jupyter_token = JupyterUser.get_token(user_id, username)
             logger.info(cadre_token)
@@ -333,7 +334,7 @@ def logout_user():
     try:
         token = request.headers.get('auth-token')
         username = escape(request.json.get('username'))
-        UserToken.expire_token(token);
+        UserToken.expire_token(token)
 
         if User.query.filter_by(username=username).first() is not None:
             user = User.query.filter_by(username=username).first()
