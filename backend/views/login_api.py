@@ -299,6 +299,8 @@ def cognito_callback():
             username = username.decode('ascii')
             if '=' in username:
                 username = username.replace('=', '')
+
+            username = username.lower()
             logger.info(username)
 
             user_id = add_user(username, email, full_name, institution, aws_username)
