@@ -294,8 +294,8 @@ def cognito_callback():
             names = email.split('@')
             username = names[0]
 
-            # base64 encoded username
-            username = base64.urlsafe_b64encode(bytes(username, 'utf-8'))
+            # base32 encoded username
+            username = base64.b32encode(bytes(username, 'utf-8'))
             username = username.decode('ascii')
             if '=' in username:
                 username = username.replace('=', '')
