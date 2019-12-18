@@ -280,12 +280,18 @@ def cognito_callback():
                 institution = user_info_response_json['custom:idp_name']
             elif 'GOOGLE' in aws_username:
                 institution = 'google'
+            elif 'Microsoft' in aws_username:
+                institution = 'microsoft'
             else:
                 institution = 'guest'
             email = user_info_response_json['email']
-            given_name = user_info_response_json['given_name']
-            family_name = user_info_response_json['family_name']
-            full_name = given_name + " " + family_name
+            full_name = ""
+            if 'given_name' in user_info_response_json:
+                given_name = user_info_response_json['given_name']
+                full_name = given_name
+            if 'family_name' in user_info_response_json:
+                family_name = user_info_response_json['family_name']
+                full_name += " " + family_name
 
             if email is None:
                 logger.error('Authentication failed.')
