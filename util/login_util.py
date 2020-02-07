@@ -31,10 +31,6 @@ paying_members = [
     'University of Illinois',
     'University of Nebraska-Lincoln',
     'University of Wisconsin-Madison',
-    'Rutgers, The State University of New Jersey'
-
-]
-
-paying_members_with_limited_access = [
+    'Rutgers, The State University of New Jersey',
     'University of Maryland College Park'
 ]
