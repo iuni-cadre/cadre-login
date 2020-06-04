@@ -30,6 +30,8 @@ def login_user():
         if User.query.filter_by(username=username).first() is not None:
             user = User.query.filter_by(username=username).first()
             if user.verify_password(password):
+                if user.blacklisted:
+                    return jsonify({'error': 'blacklisted'}), 403
                 token = user.generate_auth_token(600)
                 user.token = token.decode('ascii')
                 user.modified_on = datetime.now()
@@ -86,6 +88,8 @@ def authenticate_token():
             else:
                 user = UserToken.verify_auth_token(token)
                 if user is not None:
+                    if user.blacklisted:
+                        return jsonify({'error': 'blacklisted'}), 403
                     roles = UserRole.get_roles(user.user_id)
                     logger.info(roles)
                     logger.info('User token authenticated successfully !')
@@ -127,6 +131,8 @@ def renew_token():
             if existing_token is not None:
                 user = UserToken.verify_auth_token(token)
                 if user is not None:
+                    if user.blacklisted:
+                        return jsonify({'error': 'blacklisted'}), 403
                     token = user.token
                     logger.info('Authentication token renewed successfully !')
                     return jsonify({'token': token.decode('ascii'), 'duration': 600})
@@ -217,6 +223,8 @@ def get_all_users():
         token = request.headers.get('auth-token')
         user = User.verify_auth_token(token)
         if user is not None:
+            if user.blacklisted:
+                return jsonify({'error': 'blacklisted'}), 403
             logger.info("User token verified")
             all_users = User.query.all()
             user_name_list = []
@@ -253,7 +261,8 @@ def update_user(username):
         token = request.headers.get('auth-token')
         user = User.verify_auth_token(token)
         if user is not None:
-
+            if user.blacklisted:
+                return jsonify({'error': 'blacklisted'}), 403
             roles = UserRole.get_roles(user.user_id)
             role_found = False
             if roles:
@@ -345,6 +354,8 @@ def delete_user(username):
         token = request.headers.get('auth-token')
         user = User.verify_auth_token(token)
         if user is not None:
+            if user.blacklisted:
+                return jsonify({'error': 'blacklisted'}), 403
             roles = UserRole.get_roles(user.user_id)
             if roles:
                 for role in roles:
@@ -380,6 +391,8 @@ def get_user(username):
         token = request.headers.get('auth-token')
         user = User.verify_auth_token(token)
         if user is not None:
+            if user.blacklisted:
+                return jsonify({'error': 'blacklisted'}), 403
             role_found = False
             roles = UserRole.get_roles(user.user_id)
             if roles:
