@@ -14,7 +14,8 @@ btaa_members = [
     'The Pennsylvania State University',
     'Purdue University Main Campus',
     'Rutgers University-New Brunswick',
-    'University of Wisconsin-Madison'
+    'University of Wisconsin-Madison',
+    'University of Toronto'
 ]
 
 paying_members = [
@@ -32,5 +33,6 @@ paying_members = [
     'University of Nebraska-Lincoln',
     'University of Wisconsin-Madison',
     'Rutgers, The State University of New Jersey',
-    'University of Maryland College Park'
+    'University of Maryland College Park',
+    'University of Toronto'
 ]
