@@ -13,6 +13,7 @@ util = parent + '/util'
 sys.path.append(parent)
 
 from .data_model import User, UserRole, UserToken
+from login_api import list_user_cognito_groups
 from backend import db
 
 blueprint = Blueprint('user_api', __name__)
@@ -87,11 +88,14 @@ def authenticate_token():
                 user = UserToken.verify_auth_token(token)
                 if user is not None:
                     roles = UserRole.get_roles(user.user_id)
+                    aws_username = User.get_aws_username(user.user_id)
+                    cognito_groups = list_user_cognito_groups(aws_username)
                     logger.info(roles)
                     logger.info('User token authenticated successfully !')
                     success_message = {
                         'user_id': user.user_id,
-                        'roles': roles
+                        'roles': roles,
+                        'cognito_groups': cognito_groups
                     }
                     resp = Response(response=json.dumps(success_message),
                                     mimetype="application/json",
