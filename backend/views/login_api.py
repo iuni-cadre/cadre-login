@@ -292,7 +292,6 @@ def cognito_callback():
         if user_info_response_code == 200:
             user_info_response_json = user_info_response.json()
             logger.info(user_info_response_json)
-            cognito_groups = access_token.payload['cognito:groups']
             aws_username = user_info_response_json['username']
             aws_username = aws_username.upper()
             if 'CILOGON' in aws_username:
