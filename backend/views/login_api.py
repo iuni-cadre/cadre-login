@@ -194,6 +194,27 @@ def add_user_to_usergroup(username, role):
         logger.error('Error occurred while adding user to cognito user group !. Error is ' + str(e))
         traceback.print_tb(e.__traceback__)
 
+def list_user_cognito_groups(username):
+    logger.info('Listing user Cognito Groups')
+    try:
+        base_group = ["MAG"]
+        logger.info(username)
+        cognito_client = boto3.client('cognito-idp',
+                                  aws_access_key_id=util.config_reader.get_aws_access_key(),
+                                  aws_secret_access_key=util.config_reader.get_aws_access_key_secret(),
+                                  region_name=util.config_reader.get_aws_region())
+        response = cognito_client.admin_list_groups_for_user(
+            Username=username,
+            UserPoolId=util.config_reader.get_cognito_userpool_id()
+        )
+        cognito_groups = [g.get("GroupName") for g in response.get("Groups")]
+        if cognito_groups:
+            return cognito_groups
+        return base_group
+    except Exception as e:
+        logger.error('Error occurred while listing user Cognito Groups. Error is ' + str(e))
+        traceback.print_tb(e.__traceback__)
+    
 
 def generate_j_token(pwd, username):
     token_args = {
@@ -271,7 +292,6 @@ def cognito_callback():
         if user_info_response_code == 200:
             user_info_response_json = user_info_response.json()
             logger.info(user_info_response_json)
-
             aws_username = user_info_response_json['username']
             aws_username = aws_username.upper()
             if 'CILOGON' in aws_username:

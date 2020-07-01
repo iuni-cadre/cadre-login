@@ -60,6 +60,12 @@ class User(db.Model):
     def verify_password(self, password):
         return pwd_context.verify(password, self.password_hash)
 
+    def get_aws_username(user_id):
+        username = User.query.filter_by(user_id=user_id).first()
+        if username:
+            return username.aws_username
+        return None
+        
 
 class UserToken(db.Model):
     __tablename__ = 'user_token'
