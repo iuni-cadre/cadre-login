@@ -13,7 +13,7 @@ util = parent + '/util'
 sys.path.append(parent)
 
 from .data_model import User, UserRole, UserToken
-from login_api import list_user_cognito_groups
+from .login_api import list_user_cognito_groups
 from backend import db
 
 blueprint = Blueprint('user_api', __name__)
