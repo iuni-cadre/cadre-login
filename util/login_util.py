@@ -36,3 +36,7 @@ paying_members = [
     'University of Maryland College Park',
     'University of Toronto'
 ]
+
+trial_members = [
+    'University of Toronto'
+]
