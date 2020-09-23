@@ -26,7 +26,7 @@ from .data_model import User, UserLogin, UserRole, JupyterUser, UserToken
 
 import util.config_reader
 from backend import auth, db
-from util.login_util import btaa_members, paying_members
+from util.login_util import btaa_members, paying_members, trial_members
 
 cadre_dashboard_url = util.config_reader.get_cadre_dashboard_uri()
 
@@ -95,6 +95,8 @@ def add_user(username, email, full_name, institution,  aws_username):
         # add jupyterhub user info
         add_jupyter_user(user_id, username)
         add_user_to_usergroup(aws_username, roles[0])
+        if institution in trial_members:
+            add_user_to_usergroup(aws_username, 'wos_trial')
         # add_user_to_userpool(username)
         return user_id
     except Exception as e:
