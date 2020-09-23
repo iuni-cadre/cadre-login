@@ -295,10 +295,10 @@ def cognito_callback():
             user_info_response_json = user_info_response.json()
             logger.info(user_info_response_json)
             aws_username = user_info_response_json['username']
-            aws_username = aws_username.upper()
-            if 'CILOGON' in aws_username:
+            # aws_username = aws_username.upper()
+            if 'CILOGON' in aws_username.upper():
                 institution = user_info_response_json['custom:idp_name']
-            elif 'GOOGLE' in aws_username:
+            elif 'GOOGLE' in aws_username.upper():
                 institution = 'google'
             elif 'Microsoft' in aws_username:
                 institution = 'microsoft'
