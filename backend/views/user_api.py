@@ -74,13 +74,10 @@ def authenticate_token():
     logger.info('Authenticate token !')
     try:
         token = request.headers.get('auth-token')
-        logger.info(token)
         username = escape(request.json.get('username'))
-        logger.info(username)
         if User.query.filter_by(username=username).first() is not None:
             user = User.query.filter_by(username=username).first()
             saved_token = UserToken.get_access_token(user.user_id).token
-            logger.info(saved_token)
             if token != saved_token:
                 logger.error('Invalid token provided !')
                 return jsonify({'Error': 'Invalid token'}), 401
@@ -90,7 +87,6 @@ def authenticate_token():
                     roles = UserRole.get_roles(user.user_id)
                     aws_username = User.get_aws_username(user.user_id)
                     cognito_groups = list_user_cognito_groups(aws_username)
-                    logger.info(roles)
                     logger.info('User token authenticated successfully !')
                     success_message = {
                         'user_id': user.user_id,
