@@ -103,7 +103,6 @@ class UserToken(db.Model):
         return None
 
     def get_refresh_token(user_id):
-        logger.info(user_id)
         user = UserToken.query.filter_by(user_id=user_id, type='refresh').first()
         if user:
             return user
@@ -113,16 +112,12 @@ class UserToken(db.Model):
     def verify_auth_token(token):
         logger.info('******* verify token ******** ')
         try:
-            logger.info(token)
             access_token_count = UserToken.query.filter_by(token=token,type='access').count()
-            logger.info(access_token_count)
             if access_token_count > 0:
                 access_token = UserToken.query.filter_by(token=token, type='access').first()
                 access_token_expired = (access_token.token_expiration.timestamp() - datetime.now().timestamp()) <= 0
                 user_id = access_token.user_id
-                logger.info(user_id)
                 refresh_token = UserToken.get_refresh_token(user_id)
-                logger.info(refresh_token.token)
                 id_token = UserToken.get_id_token(user_id)
                 refresh_token_expired = (refresh_token.token_expiration.timestamp() - datetime.now().timestamp()) <= 0
 
@@ -137,15 +132,12 @@ class UserToken(db.Model):
                     headers = {
                         "Content-Type": "application/x-www-form-urlencoded"
                     }
-                    logger.info(json.dumps(headers))
                     response = requests.post(util.config_reader.get_cognito_token_endpoint(),
                                              data=token_args,
                                              headers=headers)
                     status_code = response.status_code
-                    logger.info(status_code)
                     if status_code == 200:
                         refresh_token_response = response.json()
-                        logger.info(refresh_token_response)
                         new_access_token = refresh_token_response['access_token']
                         new_id_token = refresh_token_response['id_token']
                         access_token.token = new_access_token
@@ -169,9 +161,7 @@ class UserToken(db.Model):
     def expire_token(token):
         logger.info('******* expire token ******** ')
         try:
-            logger.info(token)
             access_token_count = UserToken.query.filter_by(token=token,type='access').count()
-            logger.info(access_token_count)
             if access_token_count > 0:
                 access_token = UserToken.query.filter_by(token=token, type='access').first()
                 access_token.token_expiration_make_expired()
