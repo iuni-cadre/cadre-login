@@ -39,7 +39,6 @@ def generate_random_pwd(string_length=10):
 
 def add_user(username, email, full_name, institution,  aws_username):
     try:
-        logger.info(email)
         roles = []
         user_id = 0
         if institution in btaa_members:
@@ -51,7 +50,7 @@ def add_user(username, email, full_name, institution,  aws_username):
             roles.append('guest')
         user_login = UserLogin.query.filter_by(social_id=username).first()
         if not user_login:
-            logger.info("New user")
+            logger.info("Trying to add New user")
             user_login = UserLogin(social_id=username,
                                    name=full_name,
                                    email=email,
@@ -60,7 +59,7 @@ def add_user(username, email, full_name, institution,  aws_username):
             db.session.commit()
             login_id = user_login.id
         else:
-            logger.info("Existing user")
+            logger.info("Updating existing user")
             db.session.commit()
             login_id = user_login.id
         user_info = User.query.filter_by(login_id=login_id).first()
@@ -83,7 +82,6 @@ def add_user(username, email, full_name, institution,  aws_username):
                 user_roles = UserRole.query.filter_by(user_id=user_id)
                 for user_role in user_roles:
                     existing_role = user_role.role
-                    logger.info(existing_role)
                     if existing_role not in roles:
                         # delete row
                         UserRole.query.filter_by(user_id=user_id, role=existing_role).delete()
@@ -143,8 +141,6 @@ def add_tokens(user_id, access_token, id_token, refresh_token):
 def add_jupyter_user(user_id, username):
     logger.info('Creating jupyterhub user and token')
     try:
-        logger.info(user_id)
-        logger.info(username)
         jupyterUser = JupyterUser.query.filter_by(user_id=user_id).first()
         pwd = generate_random_pwd(10)
         if not jupyterUser:
@@ -170,7 +166,6 @@ def add_jupyter_user(user_id, username):
 def add_user_to_usergroup(username, role):
     logger.info('Adding user to cognito user group')
     try:
-        logger.info(username)
         cognito_client = boto3.client('cognito-idp',
                                   aws_access_key_id=util.config_reader.get_aws_access_key(),
                                   aws_secret_access_key=util.config_reader.get_aws_access_key_secret(),
@@ -230,10 +225,8 @@ def generate_j_token(pwd, username):
     response = requests.post(jupyterhub_token_ep, json=token_args, headers=headers)
     # response = requests.get(util.config_reader.get_jupyterhub_api())
     status_code = response.status_code
-    logger.info(status_code)
     access_token_json = response.json()
     token = access_token_json['token']
-    logger.info(token)
     return token
 
 
@@ -260,9 +253,6 @@ def login_success():
 @blueprint.route('/api/cognito/callback')
 def cognito_callback():
     code = request.args.get('code')
-    logger.info(code)
-    redirect_url = util.config_reader.get_cognito_redirect_uri()
-    logger.info(redirect_url)
 
     token_args = {
         "code": code,
@@ -273,7 +263,6 @@ def cognito_callback():
     headers = {
         "Content-Type": "application/x-www-form-urlencoded"
     }
-    logger.info(json.dumps(headers))
     response = requests.post(util.config_reader.get_cognito_token_endpoint(),
                              data=token_args,
                              headers=headers)
@@ -327,16 +316,13 @@ def cognito_callback():
                 username = username.replace('=', '')
 
             username = username.lower()
-            logger.info(username)
 
             user_id = add_user(username, email, full_name, institution, aws_username)
             add_tokens(user_id, access_token, id_token, refresh_token)
             add_jupyter_user(user_id, username)
-            logger.info(user_id)
             cadre_token = UserToken.get_access_token(user_id).token
             jupyter_token = JupyterUser.get_token(user_id, username)
-            logger.info(cadre_token)
-            logger.info(username)
+            logger.info('User with username ' + username + ' added..')
 
             return redirect(cadre_dashboard_url + username + '&cadre_token=' + cadre_token + '&jupyter_token=' + jupyter_token)
         else:
@@ -347,17 +333,11 @@ def cognito_callback():
         return render_template('login-failed.html')
 
 
-
-
 @blueprint.route('/api/cognito/logout')
 def cognito_callback_logout():
     logger.info('########### LOGOUT #########')
-    code = request.args.get('code')
-    logger.info(code)
     redirect_url = util.config_reader.get_cognito_logout_redirect_uri()
-    logger.info(redirect_url)
     return redirect(redirect_url)
-
 
 
 @blueprint.route('/api/logout', methods=['POST'])
@@ -458,7 +438,6 @@ def logout_user():
         # else:
         #     logger.error('Authentication failed.')
         #     return render_template('login-failed.html')
-
 
 
 @blueprint.route('/login-fail')
