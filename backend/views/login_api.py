@@ -41,11 +41,13 @@ def add_user(username, email, full_name, institution,  aws_username):
     try:
         roles = []
         user_id = 0
-        if institution in btaa_members:
-            if institution in paying_members:
-                roles.append('wos_gold')
-            else:
-                roles.append('wos')
+        
+        if institution in paying_members:
+            roles.append('wos_gold')
+        elif institution in btaa_members:
+            roles.append('wos')
+        elif institution in trial_members:
+            roles.append('wos_trial')
         else:
             roles.append('guest')
         user_login = UserLogin.query.filter_by(social_id=username).first()
@@ -170,7 +172,18 @@ def add_user_to_usergroup(username, role):
                                   aws_access_key_id=util.config_reader.get_aws_access_key(),
                                   aws_secret_access_key=util.config_reader.get_aws_access_key_secret(),
                                   region_name=util.config_reader.get_aws_region())
-        if 'wos' in role:
+        if 'wos_trial' in role:
+            response = cognito_client.admin_add_user_to_group(
+                UserPoolId=util.config_reader.get_cognito_userpool_id(),
+                Username=username,
+                GroupName='wos_trial'
+            )
+            response = cognito_client.admin_add_user_to_group(
+                UserPoolId=util.config_reader.get_cognito_userpool_id(),
+                Username=username,
+                GroupName='MAG'
+            )
+        elif  'wos' in role:
             response = cognito_client.admin_add_user_to_group(
                 UserPoolId=util.config_reader.get_cognito_userpool_id(),
                 Username=username,
