@@ -1,20 +1,20 @@
 btaa_members = [
     'Indiana University',
-    'University of Illinois',
+    # 'University of Illinois',
     'University of Iowa',
     'University of Maryland College Park',
     'University of Michigan',
     'Michigan State University',
     'University of Minnesota',
-    'University of Nebraska-Lincoln',
-    'Northwestern University',
+    # 'University of Nebraska-Lincoln',
+    # 'Northwestern University',
     'Ohio State University',
     'Penn State',
     'Pennsylvania State University',
     'The Pennsylvania State University',
     'Purdue University Main Campus',
     'Rutgers University-New Brunswick',
-    'University of Wisconsin-Madison',
+    # 'University of Wisconsin-Madison',
     'University of Toronto'
 ]
 
@@ -35,5 +35,6 @@ paying_members = [
 ]
 
 trial_members = [
-    'University of Toronto'
+    'University of Toronto',
+    'University of Nebraska-Lincoln'
 ]
