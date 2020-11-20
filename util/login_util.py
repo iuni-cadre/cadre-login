@@ -29,9 +29,6 @@ paying_members = [
     'Pennsylvania State University',
     'The Pennsylvania State University',
     'Purdue University Main Campus',
-    'University of Illinois',
-    'University of Nebraska-Lincoln',
-    'University of Wisconsin-Madison',
     'Rutgers, The State University of New Jersey',
     'University of Maryland College Park',
     'University of Toronto'
