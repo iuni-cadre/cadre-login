@@ -35,5 +35,5 @@ paying_members = [
 ]
 
 trial_members = [
-    'University of Nebraska-Lincoln'
+    'University of Illinois at Urbana-Champaign'
 ]
