@@ -6,6 +6,7 @@ import flask
 import requests
 from flask import jsonify, render_template, request, Blueprint, redirect, escape, abort, Response
 import sys, os
+import logging
 import logging.config
 import random
 import string
@@ -21,6 +22,11 @@ sys.path.append(parent)
 
 blueprint = Blueprint('login_api', __name__)
 logger = logging.getLogger('login_api')
+logging.getLogger('boto3').setLevel(logging.CRITICAL)
+logging.getLogger('botocore').setLevel(logging.CRITICAL)
+logging.getLogger('nose').setLevel(logging.CRITICAL)
+logging.getLogger('s3transfer').setLevel(logging.CRITICAL)
+logging.getLogger('urllib3').setLevel(logging.CRITICAL)
 
 from .data_model import User, UserLogin, UserRole, JupyterUser, UserToken
 
