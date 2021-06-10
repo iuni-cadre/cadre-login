@@ -32,7 +32,7 @@ from .data_model import User, UserLogin, UserRole, JupyterUser, UserToken
 
 import util.config_reader
 from backend import auth, db
-from util.login_util import btaa_members, paying_members, trial_members
+from util.login_util import btaa_members, paying_members, trial_members, wos_members
 
 cadre_dashboard_url = util.config_reader.get_cadre_dashboard_uri()
 
@@ -49,8 +49,9 @@ def add_user(username, email, full_name, institution,  aws_username):
         user_id = 0
         
         if institution in paying_members:
-            roles.append('wos_gold')
-        elif institution in btaa_members:
+            roles.append('paying_member')
+
+        if institution in wos_members:
             roles.append('wos')
         elif institution in trial_members:
             roles.append('wos_trial')
@@ -98,12 +99,9 @@ def add_user(username, email, full_name, institution,  aws_username):
                 user_role = UserRole(user_id=user_id, role=role)
                 db.session.add(user_role)
                 db.session.commit()
+            add_user_to_usergroup(aws_username, role)
         # add jupyterhub user info
         add_jupyter_user(user_id, username)
-        add_user_to_usergroup(aws_username, roles[0])
-        if institution in trial_members:
-            add_user_to_usergroup(aws_username, 'wos_trial')
-        # add_user_to_userpool(username)
         return user_id
     except Exception as e:
         logger.error('Error occurred while adding user to the database. Error is : ' + str(e))
@@ -189,7 +187,12 @@ def add_user_to_usergroup(username, role):
                 Username=username,
                 GroupName='MAG'
             )
-        elif  'wos' in role:
+            response = cognito_client.admin_add_user_to_group(
+                UserPoolId=util.config_reader.get_cognito_userpool_id(),
+                Username=username,
+                GroupName='free_tier'
+            )
+        elif 'wos' in role:
             response = cognito_client.admin_add_user_to_group(
                 UserPoolId=util.config_reader.get_cognito_userpool_id(),
                 Username=username,
@@ -200,15 +203,27 @@ def add_user_to_usergroup(username, role):
                 Username=username,
                 GroupName='MAG'
             )
+        elif 'paying_member' in role:
+            response = cognito_client.admin_add_user_to_group(
+                UserPoolId=util.config_reader.get_cognito_userpool_id(),
+                Username=username,
+                GroupName='paid-tier'
+            )
         else:
             response = cognito_client.admin_add_user_to_group(
                 UserPoolId='cadre',
                 Username=username,
                 GroupName='MAG'
             )
+            response = cognito_client.admin_add_user_to_group(
+                UserPoolId=util.config_reader.get_cognito_userpool_id(),
+                Username=username,
+                GroupName='free_tier'
+            )
     except Exception as e:
         logger.error('Error occurred while adding user to cognito user group !. Error is ' + str(e))
         traceback.print_tb(e.__traceback__)
+
 
 def list_user_cognito_groups(username):
     logger.info('Listing user Cognito Groups')
