@@ -190,7 +190,7 @@ def add_user_to_usergroup(username, role):
             response = cognito_client.admin_add_user_to_group(
                 UserPoolId=util.config_reader.get_cognito_userpool_id(),
                 Username=username,
-                GroupName='free_tier'
+                GroupName='FREE_TIER'
             )
         elif 'wos' in role:
             response = cognito_client.admin_add_user_to_group(
@@ -207,7 +207,7 @@ def add_user_to_usergroup(username, role):
             response = cognito_client.admin_add_user_to_group(
                 UserPoolId=util.config_reader.get_cognito_userpool_id(),
                 Username=username,
-                GroupName='paid-tier'
+                GroupName='PAID_TIER'
             )
         else:
             response = cognito_client.admin_add_user_to_group(
@@ -218,7 +218,7 @@ def add_user_to_usergroup(username, role):
             response = cognito_client.admin_add_user_to_group(
                 UserPoolId=util.config_reader.get_cognito_userpool_id(),
                 Username=username,
-                GroupName='free_tier'
+                GroupName='FREE_TIER'
             )
     except Exception as e:
         logger.error('Error occurred while adding user to cognito user group !. Error is ' + str(e))
@@ -356,6 +356,8 @@ def cognito_callback():
             add_jupyter_user(user_id, username)
             cadre_token = UserToken.get_access_token(user_id).token
             jupyter_token = JupyterUser.get_token(user_id, username)
+            if jupyter_token is None:
+                jupyter_token = 'test'
             logger.info('User with username ' + username + ' added..')
 
             return redirect(cadre_dashboard_url + username + '&cadre_token=' + cadre_token + '&jupyter_token=' + jupyter_token)
