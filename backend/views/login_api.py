@@ -47,7 +47,7 @@ def add_user(username, email, full_name, institution,  aws_username):
     try:
         roles = []
         user_id = 0
-        
+
         if institution in paying_members:
             roles.append('paying_member')
 
@@ -58,6 +58,7 @@ def add_user(username, email, full_name, institution,  aws_username):
         else:
             roles.append('guest')
         user_login = UserLogin.query.filter_by(social_id=username).first()
+        logger.info(roles)
         if not user_login:
             logger.info("Trying to add New user")
             user_login = UserLogin(social_id=username,
@@ -85,15 +86,22 @@ def add_user(username, email, full_name, institution,  aws_username):
             user_info.modified_on = datetime.now()
             db.session.commit()
             user_id = user_info.user_id
+
+        user_roles_count = UserRole.query.filter_by(user_id=user_id).count()
+        user_roles = UserRole.query.filter_by(user_id=user_id)
+        existing_roles = []
+        for existing_role in user_roles:
+            existing_roles.append(existing_role.role)
         for role in roles:
-            user_roles_count = UserRole.query.filter_by(user_id=user_id).count()
             if user_roles_count > 0:
-                user_roles = UserRole.query.filter_by(user_id=user_id)
-                for user_role in user_roles:
-                    existing_role = user_role.role
+                for existing_role in existing_roles:
                     if existing_role not in roles:
                         # delete row
                         UserRole.query.filter_by(user_id=user_id, role=existing_role).delete()
+                        db.session.commit()
+                    elif role not in existing_roles:
+                        user_role = UserRole(user_id=user_id, role=role)
+                        db.session.add(user_role)
                         db.session.commit()
             else:
                 user_role = UserRole(user_id=user_id, role=role)
