@@ -73,6 +73,12 @@ class UserToken(db.Model):
     type = db.Column(db.String(128), primary_key=True)
     token = db.Column(db.Text)
     token_expiration = db.Column(db.DateTime)
+    last_update = db.Column(db.DateTime)
+
+    def set_last_updated(self):
+        self.last_update = datetime.now()
+        db.session.commit()
+        return self.last_update
 
     def token_expiration_for_access_id_token(self):
         self.token_expiration = datetime.now() + timedelta(minutes=60)
@@ -143,9 +149,11 @@ class UserToken(db.Model):
                         access_token.token = new_access_token
                         access_token.type = 'access'
                         access_token.token_expiration_for_access_id_token()
+                        access_token.set_last_updated()
                         id_token.token = new_id_token
                         id_token.type = 'id'
                         id_token.token_expiration_for_access_id_token()
+                        id_token.set_last_update()
                 elif refresh_token_expired:
                     logger.info('Refresh token is expired. User needs to log back')
                     return None
