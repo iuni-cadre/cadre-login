@@ -77,6 +77,7 @@ class UserToken(db.Model):
 
     def set_last_updated(self):
         self.last_update = datetime.now()
+        logger.info(self.last_update)
         db.session.commit()
         return self.last_update
 
@@ -153,11 +154,13 @@ class UserToken(db.Model):
                         id_token.token = new_id_token
                         id_token.type = 'id'
                         id_token.token_expiration_for_access_id_token()
-                        id_token.set_last_update()
+                        id_token.set_last_updated()
                 elif refresh_token_expired:
                     logger.info('Refresh token is expired. User needs to log back')
                     return None
                 else:
+                    access_token.set_last_updated()
+                    id_token.set_last_updated()
                     return access_token
             else:
                 logger.info("could not find user info for given access token")
