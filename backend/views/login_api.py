@@ -285,6 +285,7 @@ def cognito_callback():
     response = requests.post(util.config_reader.get_cognito_token_endpoint(),
                              data=token_args,
                              headers=headers)
+    logger.info(response)
     status_code = response.status_code
     logger.info(status_code)
     if status_code == 200:
